@@ -1,18 +1,10 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
-import { ComponentProvider } from '@/components/LandingPageContext';
-import { useComponent } from '@/components/LandingPageContext';
+"use client";
+import { useContext } from "react";
+import { ComponentContext } from "@/context/MainContent";
 
-interface HomeProps {
-  component: React.ComponentType<any>;
-  page_props: Record<string, any>;
-}
-
-const Home: React.FC<HomeProps> = ({ component: Component = () => null, page_props: pageProps }) => {
-  return (
-    <ComponentProvider>
-      <Component {...pageProps}></Component>
-    </ComponentProvider>
-  );
-}
+const Home = () => {
+  const { component } = useContext(ComponentContext)!;
+  return <div>{component}</div>;
+};
 
 export default Home;

@@ -1,10 +1,12 @@
-import { useComponent } from "./LandingPageContext";
+"use client";
+
+import { ComponentContext, ComponentProvider } from "@/context/MainContent";
+import { useContext } from "react";
 import ImageUploadDialog from "./ImageUploadDialog";
+import Home from "./Home";
 
 export default function Nav() {
-  const { selectedComponent, setComponent } = useComponent();
-
-  const componentToRender = selectedComponent || null;
+  const { setComponent } = useContext(ComponentContext)!;
 
   return (
     <div className="navbar bg-base-100">
@@ -31,22 +33,26 @@ export default function Nav() {
             className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
           >
             <li>
-              <a onClick={() => setComponent(<ImageUploadDialog />)}>Upload a new image</a>
+              <a onClick={() => setComponent(<ImageUploadDialog />)}>
+                Upload a new image
+              </a>
             </li>
             <li>
-                <a>Galery</a>
+              <a>Galery</a>
             </li>
             <li>
               <a>Logout</a>
             </li>
           </ul>
         </div>
-        <a className="btn btn-ghost text-xl">Image-Manager</a>
+        <a onClick={() => setComponent(<Home />)} className="btn btn-ghost text-xl">Image-Manager</a>
       </div>
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1">
           <li>
-            <a onClick={() => setComponent(<ImageUploadDialog />)}>Upload a new image</a>
+            <a onClick={() => setComponent(<ImageUploadDialog />)}>
+              Upload a new image
+            </a>
           </li>
           <li>
             <a>Galery</a>
@@ -57,12 +63,19 @@ export default function Nav() {
         </ul>
       </div>
       <div className="navbar-end">
-      <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
-        <div className="w-10 rounded-full">
-          <img alt="Tailwind CSS Navbar component" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+        <div
+          tabIndex={0}
+          role="button"
+          className="btn btn-ghost btn-circle avatar"
+        >
+          <div className="w-10 rounded-full">
+            <img
+              alt="Tailwind CSS Navbar component"
+              src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg"
+            />
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }
