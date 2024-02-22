@@ -10,6 +10,7 @@ export default function ImageUploadDialog() {
   const [keywords, setKeywords] = useState<String[]>([]);
   const [showAlert, setShowAlert] = useState<String | null>(null);
   const [focusedKeyWord, setFocusedKeyword] = useState("");
+  const [images, setImages] = useState<File[]>([]);
 
   const handleKeywordsChange = (
     event: React.KeyboardEvent<HTMLInputElement>
@@ -31,6 +32,26 @@ export default function ImageUploadDialog() {
     }
   };
 
+  const addFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setImages(
+      Array.from(
+        new Set([...Array.from(event.target.files as any), ...images])
+      ) as File[]
+    );
+  };
+
+  const deleteFile = (index: number) => {
+    let copy = [...images];
+    copy.splice(index, 1);
+    setImages(copy);
+  };
+
+  const deleteKeyword = (index: number) => {
+    let copy = [...keywords];
+    copy.splice(index, 1);
+    setKeywords(copy);
+  };
+
   useEffect(() => {
     if (showAlert) {
       const timer = setTimeout(() => {
@@ -42,49 +63,105 @@ export default function ImageUploadDialog() {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-4 items-end">
-        <form className="grid grid-cols-1 grid-rows-1 gap-4">
+      <h1 className="text-center text-4xl font-bold mb-4">Upload Images</h1>
+      <div className="grid md:grid-cols-2 gap-4 items-end">
+        <form className="grid grid-cols-1 grid-rows-1 gap-4 mr-5">
           <input
             type="file"
             className="file-input file-input-bordered file-input-secondary w-full max-w-xs"
+            onChange={(event) => addFiles(event)}
             multiple
           />
           <input
             type="text"
             placeholder="Group name..."
-            className="input input-bordered w-full max-w-xs"
+            className="input input-bordered w-full max-w-xs h-12"
           />
           <textarea
-            className="textarea textarea-secondary h-20"
+            className="textarea textarea-secondary h-24 w-80"
             placeholder="Description..."
             value={description}
             onChange={(event) => setDescription(event.target.value)}
           ></textarea>
           <input
             type="text"
-            className="input input-bordered input-secondary h-20"
+            className="input input-bordered input-secondary h-12"
             placeholder="Keywords.."
             value={focusedKeyWord}
             onChange={(event) => setFocusedKeyword(event.target.value)}
             onKeyDown={handleKeywordsChange}
           ></input>
         </form>
-        <div className="relative">
-          <div className="p-4 absolute top-0 left-0 bg-secondary text-black px-2 py-1 rounded-br-md">
-            Keywords
-          </div>
-          <div className="p-4 rounded-md border overflow-auto h-20 w-80 align-baseline border-secondary mt-4">
-            {keywords.map((keyword, _) => (
-              <div className="badge badge-primary badge-outline">
-                #{keyword}
+        <div>
+          <div className="relative top-0">
+            <div className="p-4 absolute top-0 left-0 bg-secondary text-black px-2 py-1 rounded-br-md">
+              Images
+            </div>
+            <div className="p-4 rounded-md border overflow-auto h-48 w-80 align-baseline border-secondary mt-4">
+              <div className="mt-5">
+                {images.map((image, i) => (
+                  <div key={i} className="mb-4">
+                    <div className="badge badge-primary badge-outline h-16 w-full transform hover:scale-110 cursor-pointer">
+                      <svg
+                        onClick={() => deleteFile(i)}
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        className="inline-block w-6 h-6 stroke-current hover:opacity-80"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        ></path>
+                      </svg>
+                      <p className="p-4 font-mono truncate">{image.name}</p>
+                      <img
+                        className="min-w-20 max-w-32 h-4/5 object-cover mt-2 mb-2 mr-1 ml-1 rounded"
+                        src={URL.createObjectURL(image)}
+                        alt={image.name}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="p-4 absolute top-0 left-0 bg-secondary text-black px-2 py-1 rounded-br-md">
+              Keywords
+            </div>
+            <div className="p-4 rounded-md border overflow-auto min-h-16 max-h-32 w-80 align-baseline border-secondary mt-4">
+              <div className="mt-5">
+                {keywords.map((keyword, i) => (
+                  <div className="badge badge-primary badge-outline transform hover:scale-110 mr-1">
+                    <svg
+                      onClick={() => deleteKeyword(i)}
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      className="inline-block w-4 h-4 stroke-current hover:opacity-80"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      ></path>
+                    </svg>
+                    <p className="p-4 font-mono">#{keyword}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
       <div
         role="alert"
-        className={`absolute top-10 right-0 w-1/3 alert alert-error transition-all duration-500 mt-4 ${
+        className={`absolute top-10 right-3 w-1/3 alert alert-error transition-all duration-500 mt-4 ${
           showAlert ? "" : "opacity-0"
         }`}
       >

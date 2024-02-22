@@ -27,9 +27,7 @@ export default function RootLayout({
           <div className="p-5 flex flex-row justify-center bg-base-100">
             {children}
           </div>
-          <footer>
-            <Footer></Footer>
-          </footer>
+          <Footer></Footer>
         </ComponentProvider>
       </body>
     </html>

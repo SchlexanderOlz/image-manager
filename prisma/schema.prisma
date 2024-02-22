@@ -11,12 +11,20 @@ datasource db {
 }
 
 
+model Group {
+  id Int @id @default(autoincrement())
+  name String
+  images Image[]
+}
+
 model Image {
   id Int @id @default(autoincrement())
   name String
   description String?
   url String 
   keywords Keyword[]
+  group_id Int 
+  group Group @relation(fields: [group_id], references: [id])
 }
 
 model Keyword {
