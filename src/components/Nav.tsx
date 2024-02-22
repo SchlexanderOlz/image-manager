@@ -4,6 +4,7 @@ import { ComponentContext, ComponentProvider } from "@/context/MainContent";
 import { useContext } from "react";
 import ImageUploadDialog from "./ImageUploadDialog";
 import Home from "./Home";
+import Galery from "./Galery";
 
 export default function Nav() {
   const { setComponent } = useContext(ComponentContext)!;
@@ -38,7 +39,7 @@ export default function Nav() {
               </a>
             </li>
             <li>
-              <a>Galery</a>
+              <a onClick={() => setComponent(<Galery />)}>Galery</a>
             </li>
             <li>
               <a>Logout</a>
@@ -55,7 +56,7 @@ export default function Nav() {
             </a>
           </li>
           <li>
-            <a>Galery</a>
+            <a onClick={() => setComponent(<Galery />)}>Galery</a>
           </li>
           <li>
             <a>Logout</a>

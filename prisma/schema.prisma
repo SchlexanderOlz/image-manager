@@ -14,21 +14,30 @@ datasource db {
 model Group {
   id Int @id @default(autoincrement())
   name String
+  description String
   images Image[]
+  keywords GroupKeyword[]
 }
 
 model Image {
   id Int @id @default(autoincrement())
   name String
+  created DateTime
   description String?
   url String 
-  keywords Keyword[]
+  keywords ImageKeyword[]
   group_id Int 
   group Group @relation(fields: [group_id], references: [id])
 }
 
-model Keyword {
+model ImageKeyword {
   id Int @id @default(autoincrement())
   image_id Int 
   image Image @relation(fields: [image_id], references: [id])
+}
+
+model GroupKeyword {
+  id Int @id @default(autoincrement())
+  group_id Int 
+  group Group @relation(fields: [group_id], references: [id])
 }

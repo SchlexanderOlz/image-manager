@@ -5,10 +5,13 @@ import React, {
   useEffect,
 } from "react";
 
+import { PictureGroupUpload, uploadImages } from "@/lib/prisma";
+
 export default function ImageUploadDialog() {
+  const [groupName, setGroupName] = useState("");
   const [description, setDescription] = useState("");
-  const [keywords, setKeywords] = useState<String[]>([]);
-  const [showAlert, setShowAlert] = useState<String | null>(null);
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [showAlert, setShowAlert] = useState<string| null>(null);
   const [focusedKeyWord, setFocusedKeyword] = useState("");
   const [images, setImages] = useState<File[]>([]);
 
@@ -17,8 +20,7 @@ export default function ImageUploadDialog() {
   ) => {
     if (event.key === "Enter") {
       if (focusedKeyWord.trim().length == 0) {
-        setFocusedKeyword("");
-        setShowAlert("Keyword cannot be empty");
+        upload()
         return;
       }
 
@@ -52,6 +54,20 @@ export default function ImageUploadDialog() {
     setKeywords(copy);
   };
 
+  const upload = async () => {
+    let formData = new FormData()
+    images.forEach(image => formData.append("images", image))
+    formData.append("groupName", groupName)
+    formData.append("description", description)
+    keywords.forEach(keyword => formData.append("keywords", keyword))
+    const response = await fetch("/api/upload-images", { body: formData, method: "POST"})
+    if (response.status == 200) {
+      setGroupName("")
+      setDescription("")
+      setImages([])
+    }
+  }
+
   useEffect(() => {
     if (showAlert) {
       const timer = setTimeout(() => {
@@ -64,8 +80,8 @@ export default function ImageUploadDialog() {
   return (
     <>
       <h1 className="text-center text-4xl font-bold mb-4">Upload Images</h1>
-      <div className="grid md:grid-cols-2 gap-4 items-end">
-        <form className="grid grid-cols-1 grid-rows-1 gap-4 mr-5">
+      <div className="flex flex-col md:flex-row justify-between items-begin">
+        <form className="grid grid-cols-1 grid-rows-1 gap-4 md:mr-5" onSubmit={upload}>
           <input
             type="file"
             className="file-input file-input-bordered file-input-secondary w-full max-w-xs"
@@ -76,6 +92,8 @@ export default function ImageUploadDialog() {
             type="text"
             placeholder="Group name..."
             className="input input-bordered w-full max-w-xs h-12"
+            value={groupName}
+            onChange={(event) => setGroupName(event.target.value)}
           />
           <textarea
             className="textarea textarea-secondary h-24 w-80"
@@ -92,7 +110,8 @@ export default function ImageUploadDialog() {
             onKeyDown={handleKeywordsChange}
           ></input>
         </form>
-        <div>
+
+        <div className="md:ml-5">
           <div className="relative top-0">
             <div className="p-4 absolute top-0 left-0 bg-secondary text-black px-2 py-1 rounded-br-md">
               Images
@@ -159,6 +178,7 @@ export default function ImageUploadDialog() {
           </div>
         </div>
       </div>
+
       <div
         role="alert"
         className={`absolute top-10 right-3 w-1/3 alert alert-error transition-all duration-500 mt-4 ${
@@ -179,6 +199,9 @@ export default function ImageUploadDialog() {
           />
         </svg>
         <span>{showAlert}</span>
+      </div>
+      <div className="relative flex flex-col items-center justify-center">
+        <button onClick={upload} className="btn btn-outline btn-primary md:w-1/5 w-full mt-5">Upload All</button>
       </div>
     </>
   );
