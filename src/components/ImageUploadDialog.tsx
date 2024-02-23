@@ -61,7 +61,8 @@ export default function ImageUploadDialog() {
     formData.append("description", description)
     keywords.forEach(keyword => formData.append("keywords", keyword))
     const response = await fetch("/api/upload-images", { body: formData, method: "POST"})
-    if (response.status == 200) {
+    if (response.status == 204) {
+      return
       setGroupName("")
       setDescription("")
       setImages([])

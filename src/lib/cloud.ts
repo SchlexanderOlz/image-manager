@@ -1,24 +1,28 @@
 import { TransferManager, Storage } from "@google-cloud/storage";
+import { createReadStream } from "fs";
 
-const storage = new Storage();
+const projectId = "image-manager-414916"
 
+const storage = new Storage({ projectId });
 const bucket = storage.bucket(process.env.BUCKET_NAME!);
 
 export const uploadFile = async (file: File): Promise<string> => {
   console.log(bucket.baseUrl);
   let url: string = "";
-  const blob = bucket.file(file.name);
-  const blobStream = blob.createWriteStream();
-
-  blobStream.on("finish", async () => {
-    url = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+  const ref = bucket.file(file.name);
+  let stream = ref.createWriteStream({
+    gzip: true,
+    contentType: file.type,
   });
 
-  blobStream.on("unhandledRejection", (err) => {
-    console.error(err.message);
-  });
-
-  blobStream.end(await file.arrayBuffer());
+  createReadStream(file.path)
+    .pipe(stream)
+    .on("finish", async () => {
+      url = `https://storage.googleapis.com/${bucket.name}/${ref.name}`;
+    })
+    .on("unhandledRejection", (err) => {
+      console.error(err.message);
+    }).on("error", async (err) => console.log(err.message))
   return url;
 };
 
@@ -29,15 +33,4 @@ export const uploadFiles = async (files: File[]): Promise<string[]> => {
     urls.push(await uploadFile(file));
   });
   return urls;
-};
-
-export const createWriteStream = (filename: string, contentType?: string) => {
-    const ref = bucket.file(filename);
-
-    const stream = ref.createWriteStream({
-        gzip: true,
-        contentType: contentType,
-    });
-
-    return stream;
 };

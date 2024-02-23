@@ -28,7 +28,9 @@ export default async function handler(
     groupName: fields.groupName,
     description: fields.description,
     keywords: fields.keywords,
-    images: files.images,
+    images: Array.from(files.images),
   };
+  console.log(upload.images);
   await uploadImages(upload);
+  res.status(204).end();
 }
