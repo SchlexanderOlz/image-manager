@@ -13,8 +13,11 @@ datasource db {
 
 model Group {
   id Int @id @default(autoincrement())
-  name String
-  description String
+  name String @unique
+  description String?
+  start DateTime?
+  end DateTime?
+  location String?
   images Image[]
   keywords GroupKeyword[]
 }
@@ -32,12 +35,14 @@ model Image {
 
 model ImageKeyword {
   id Int @id @default(autoincrement())
+  keyWord String @unique
   image_id Int 
   image Image @relation(fields: [image_id], references: [id])
 }
 
 model GroupKeyword {
   id Int @id @default(autoincrement())
-  group_id Int 
+  keyWord String
+  group_id Int
   group Group @relation(fields: [group_id], references: [id])
 }

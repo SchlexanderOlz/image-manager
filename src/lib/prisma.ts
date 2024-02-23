@@ -1,17 +1,21 @@
 "use server";
 
-import { PrismaClient } from "@prisma/client";
+import { Group, PrismaClient } from "@prisma/client";
 import { createWriteStream, uploadFile, uploadFiles } from "./cloud";
 import * as exifParser from "exif-parser";
 import * as fs from "fs";
+import { url } from "inspector";
 
 const prisma = new PrismaClient();
 
 export interface PictureGroupUpload {
-  groupName: string;
+  name: string;
   description: string;
+  start: Date;
+  end: Date;
   keywords: string[];
   images: File[];
+  location: string;
 }
 
 export const getAllImages = async (page: number, perPage: number = 50) => {
@@ -19,19 +23,67 @@ export const getAllImages = async (page: number, perPage: number = 50) => {
 };
 
 export const uploadImages = async (upload: PictureGroupUpload) => {
-  const uploads = upload.images.map(async (image) => {
-    if (image.type === "image/jpeg") {
-      const buffer = fs.readFileSync(image.path);
-      try {
-        const parser = exifParser.create(buffer);
-        var result = parser.parse();
-      } catch (Error) {
-        console.log("Invalid upload: " + image.name); // Could handle this error differently
-      }
-      const createTime = result.tags.CreateDate;
-    }
+  const groupData = {
+    name: upload.name,
+    description: upload.description,
+    end: upload.end,
+    start: upload.start,
+    location: upload.location,
+  };
 
-    const url = await uploadFile(image);
-  });
+  let group: Group;
+  try {
+    group = await prisma.group.create({
+      data: groupData,
+    });
+  } catch (Error) {
+    group = await prisma.group.findUniqueOrThrow({
+      where: {
+        name: groupData.name,
+      },
+    });
+  }
+
+  let uploads: any = [];
+  if (upload.keywords) {
+    uploads.concat(
+      upload.keywords.map(async (keyword) => {
+        await prisma.groupKeyword.create({
+          data: {
+            keyWord: keyword as any,
+            group_id: group.id,
+          },
+        });
+      })
+    );
+  }
+
+  uploads.concat(
+    upload.images.map(async (image) => {
+      if (image.type === "image/jpeg") {
+        // TODO: Fix this so it works for exif-datetime strings
+        const buffer = fs.readFileSync(image.path);
+        try {
+          const parser = exifParser.create(buffer);
+          var result = parser.parse();
+        } catch (Error) {
+          console.log("Invalid upload: " + image.name); // Could handle this error differently
+        }
+        var createTime = result.tags.CreateDate;
+      }
+
+      const url = await uploadFile(image);
+
+      await prisma.image.create({
+        data: {
+          name: image.name,
+          created: createTime ? createTime : new Date(Date.now()).toISOString(),
+          group_id: group.id,
+          url: url,
+        },
+      });
+    })
+  );
+
   await Promise.all(uploads);
 };

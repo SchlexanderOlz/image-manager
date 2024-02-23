@@ -1,26 +1,36 @@
-import React, {
-  ChangeEvent,
-  ChangeEventHandler,
-  useState,
-  useEffect,
-} from "react";
-
-import { PictureGroupUpload, uploadImages } from "@/lib/prisma";
+import React, { useState, useEffect } from "react";
 
 export default function ImageUploadDialog() {
-  const [groupName, setGroupName] = useState("");
-  const [description, setDescription] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
-  const [showAlert, setShowAlert] = useState<string| null>(null);
+  const [showAlert, setShowAlert] = useState<string | null>(null);
   const [focusedKeyWord, setFocusedKeyword] = useState("");
   const [images, setImages] = useState<File[]>([]);
+
+  const [formData, setFormData] = useState({
+    groupName: "",
+    description: "",
+    startTime: "",
+    endTime: "",
+    location: "",
+  });
+
+  const handleFormChange = (event: any) => {
+    const target = event.target;
+
+    const value = target.type === "checkbox" ? target.checked : target.value;
+    const name = target.name;
+
+    setFormData({
+      [name]: value,
+    } as any);
+  };
 
   const handleKeywordsChange = (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => {
     if (event.key === "Enter") {
       if (focusedKeyWord.trim().length == 0) {
-        upload()
+        upload();
         return;
       }
 
@@ -55,19 +65,30 @@ export default function ImageUploadDialog() {
   };
 
   const upload = async () => {
-    let formData = new FormData()
-    images.forEach(image => formData.append("images", image))
-    formData.append("groupName", groupName)
-    formData.append("description", description)
-    keywords.forEach(keyword => formData.append("keywords", keyword))
-    const response = await fetch("/api/upload-images", { body: formData, method: "POST"})
+    let uploadFormData = new FormData();
+    images.forEach((image) => uploadFormData.append("images", image));
+    uploadFormData.append("groupName", formData.groupName);
+    uploadFormData.append("description", formData.description);
+    if (formData.startTime) uploadFormData.append("start", formData.startTime);
+    if (formData.endTime) uploadFormData.append("end", formData.endTime);
+    keywords.forEach((keyword) => uploadFormData.append("keywords", keyword));
+    const response = await fetch("/api/upload-images", {
+      body: uploadFormData,
+      method: "POST",
+    });
     if (response.status == 204) {
-      return
-      setGroupName("")
-      setDescription("")
-      setImages([])
+      return;
+      setFormData({
+        groupName: "",
+        description: "",
+        startTime: "",
+        endTime: "",
+        location: "",
+      });
+      setImages([]);
+      setKeywords([]);
     }
-  }
+  };
 
   useEffect(() => {
     if (showAlert) {
@@ -82,7 +103,10 @@ export default function ImageUploadDialog() {
     <>
       <h1 className="text-center text-4xl font-bold mb-4">Upload Images</h1>
       <div className="flex flex-col md:flex-row justify-between items-begin">
-        <form className="grid grid-cols-1 grid-rows-1 gap-4 md:mr-5" onSubmit={upload}>
+        <form
+          className="grid grid-cols-1 grid-rows-1 gap-4 md:mr-5"
+          onSubmit={upload}
+        >
           <input
             type="file"
             className="file-input file-input-bordered file-input-secondary w-full max-w-xs"
@@ -91,16 +115,42 @@ export default function ImageUploadDialog() {
           />
           <input
             type="text"
+            name="groupName"
             placeholder="Group name..."
             className="input input-bordered w-full max-w-xs h-12"
-            value={groupName}
-            onChange={(event) => setGroupName(event.target.value)}
+            value={formData.groupName}
+            onChange={handleFormChange}
+          />
+          <input
+            type="date"
+            name="beginTime"
+            placeholder="Timestart"
+            className="input input-secondary input-bordered w-full max-w-xs h-12"
+            value={formData.startTime}
+            onChange={handleFormChange}
+          />
+          <input
+            type="date"
+            name="endTime"
+            placeholder="Timeend"
+            className="input input-secondary input-bordered w-full max-w-xs h-12"
+            value={formData.endTime}
+            onChange={handleFormChange}
+          />
+          <input
+            type="text"
+            name="location"
+            placeholder="Location"
+            className="input input-secondary input-bordered w-full max-w-xs h-12"
+            value={formData.location}
+            onChange={handleFormChange}
           />
           <textarea
             className="textarea textarea-secondary h-24 w-80"
             placeholder="Description..."
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
+            name="description"
+            value={formData.description}
+            onChange={handleFormChange}
           ></textarea>
           <input
             type="text"
@@ -202,7 +252,12 @@ export default function ImageUploadDialog() {
         <span>{showAlert}</span>
       </div>
       <div className="relative flex flex-col items-center justify-center">
-        <button onClick={upload} className="btn btn-outline btn-primary md:w-1/5 w-full mt-5">Upload All</button>
+        <button
+          onClick={upload}
+          className="btn btn-outline btn-primary md:w-1/5 w-full mt-5"
+        >
+          Upload All
+        </button>
       </div>
     </>
   );

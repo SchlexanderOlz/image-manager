@@ -25,10 +25,15 @@ export default async function handler(
   const { fields, files } = await parseForm(form, req);
 
   const upload: PictureGroupUpload = {
-    groupName: fields.groupName,
+    name: fields.groupName,
     description: fields.description,
     keywords: fields.keywords,
-    images: Array.from(files.images),
+    images: Array.from(
+      typeof files.images === "object" ? [files.images] : files.images
+    ),
+    start: fields.start as Date,
+    end: fields.end as Date,
+    location: fields.location,
   };
   console.log(upload.images);
   await uploadImages(upload);
