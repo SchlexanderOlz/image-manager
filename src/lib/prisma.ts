@@ -77,7 +77,7 @@ export const uploadImages = async (upload: PictureGroupUpload) => {
       await prisma.image.create({
         data: {
           name: image.name,
-          created: createTime ? createTime : new Date(Date.now()).toISOString(),
+          created: createTime ? new Date(createTime).toISOString() : new Date(Date.now()).toISOString(),
           group_id: group.id,
           url: url,
         },

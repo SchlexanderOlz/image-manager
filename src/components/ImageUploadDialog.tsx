@@ -77,7 +77,6 @@ export default function ImageUploadDialog() {
       method: "POST",
     });
     if (response.status == 204) {
-      return;
       setFormData({
         groupName: "",
         description: "",
@@ -87,6 +86,7 @@ export default function ImageUploadDialog() {
       });
       setImages([]);
       setKeywords([]);
+      setFocusedKeyword("");
     }
   };
 
@@ -162,7 +162,7 @@ export default function ImageUploadDialog() {
           ></input>
         </form>
 
-        <div className="md:ml-5">
+        <div className="md:ml-5 md:mt-12">
           <div className="relative top-0">
             <div className="p-4 absolute top-0 left-0 bg-secondary text-black px-2 py-1 rounded-br-md">
               Images
@@ -203,7 +203,7 @@ export default function ImageUploadDialog() {
             <div className="p-4 absolute top-0 left-0 bg-secondary text-black px-2 py-1 rounded-br-md">
               Keywords
             </div>
-            <div className="p-4 rounded-md border overflow-auto min-h-16 max-h-32 w-80 align-baseline border-secondary mt-4">
+            <div className="p-4 rounded-md border overflow-auto min-h-16 md:min-h-32 max-h-52 w-80 align-baseline border-secondary mt-4">
               <div className="mt-5">
                 {keywords.map((keyword, i) => (
                   <div className="badge badge-primary badge-outline transform hover:scale-110 mr-1">

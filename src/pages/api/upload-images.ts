@@ -27,15 +27,14 @@ export default async function handler(
   const upload: PictureGroupUpload = {
     name: fields.groupName,
     description: fields.description,
-    keywords: fields.keywords,
+    keywords: Array.from(typeof(files.keywords) === "string" ? [fields.keywords] : fields.keywords ?? []),
     images: Array.from(
-      typeof files.images === "object" ? [files.images] : files.images
+      Array.isArray(files.images) ? files.images : [files.images]
     ),
     start: fields.start as Date,
     end: fields.end as Date,
     location: fields.location,
   };
-  console.log(upload.images);
   await uploadImages(upload);
   res.status(204).end();
 }

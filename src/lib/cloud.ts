@@ -7,8 +7,6 @@ const storage = new Storage({ projectId });
 const bucket = storage.bucket(process.env.BUCKET_NAME!);
 
 export const uploadFile = async (file: File): Promise<string> => {
-  console.log(bucket.baseUrl);
-  let url: string = "";
   const ref = bucket.file(file.name);
   let stream = ref.createWriteStream({
     gzip: true,
