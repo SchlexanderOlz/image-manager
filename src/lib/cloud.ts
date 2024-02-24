@@ -1,13 +1,20 @@
 import { TransferManager, Storage } from "@google-cloud/storage";
 import { createReadStream } from "fs";
+import { createHash } from "crypto";
 
 const projectId = "image-manager-414916";
 
 const storage = new Storage({ projectId });
 const bucket = storage.bucket(process.env.BUCKET_NAME!);
 
+const hashName = (name: string) => {
+  	const hash = createHash("sha1")
+    hash.update(name)
+    return hash.digest("hex").substring(0, 16)
+}
+
 export const uploadFile = async (file: File): Promise<string> => {
-  const ref = bucket.file(file.name);
+  const ref = bucket.file(hashName(file.name + Date.now().toString()));
   let stream = ref.createWriteStream({
     gzip: true,
     contentType: file.type,
@@ -17,8 +24,7 @@ export const uploadFile = async (file: File): Promise<string> => {
     createReadStream(file.path)
       .pipe(stream)
       .on("finish", async () => {
-        const url = `https://storage.googleapis.com/${bucket.name}/${ref.name}`;
-        resolve(url);
+        resolve(ref.name);
       })
       .on("unhandledRejection", (err) => {
         console.error(err.message);
@@ -39,3 +45,9 @@ export const uploadFiles = async (files: File[]): Promise<string[]> => {
   });
   return urls;
 };
+
+
+export const createBucketReadStream = async (filename: string) => {
+  const ref = bucket.file(filename);
+  return ref.createReadStream()
+}

@@ -72,7 +72,7 @@ export default function ImageUploadDialog() {
     if (formData.startTime) uploadFormData.append("start", formData.startTime);
     if (formData.endTime) uploadFormData.append("end", formData.endTime);
     keywords.forEach((keyword) => uploadFormData.append("keywords", keyword));
-    const response = await fetch("/api/upload-images", {
+    const response = await fetch("/api/images/upload", {
       body: uploadFormData,
       method: "POST",
     });

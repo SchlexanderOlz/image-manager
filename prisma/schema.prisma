@@ -27,7 +27,9 @@ model Image {
   name String
   created DateTime
   description String?
-  url String 
+  gcStorageName String 
+  height Int
+  width Int
   keywords ImageKeyword[]
   group_id Int 
   group Group @relation(fields: [group_id], references: [id])

@@ -1,10 +1,10 @@
 "use server";
 
 import { Group, PrismaClient } from "@prisma/client";
-import { createWriteStream, uploadFile, uploadFiles } from "./cloud";
+import { uploadFile} from "./cloud";
 import * as exifParser from "exif-parser";
 import * as fs from "fs";
-import { url } from "inspector";
+import sharp from "sharp";
 
 const prisma = new PrismaClient();
 
@@ -18,8 +18,12 @@ export interface PictureGroupUpload {
   location: string;
 }
 
-export const getAllImages = async (page: number, perPage: number = 50) => {
+export const getImages = async (page: number, perPage: number = 50) => {
   return prisma.image.findMany({ skip: page * perPage, take: perPage });
+};
+
+export const getImageUrls = async (page: number, perPage: number = 50): Promise<{gcStorageName: string, height: number, width: number}[]> => {
+  return await prisma.image.findMany({ skip: page * perPage, take: perPage, select: { gcStorageName: true, height: true, width: true }});
 };
 
 export const uploadImages = async (upload: PictureGroupUpload) => {
@@ -60,26 +64,26 @@ export const uploadImages = async (upload: PictureGroupUpload) => {
 
   uploads.concat(
     upload.images.map(async (image) => {
-      if (image.type === "image/jpeg") {
-        // TODO: Fix this so it works for exif-datetime strings
-        const buffer = fs.readFileSync(image.path);
-        try {
-          const parser = exifParser.create(buffer);
-          var result = parser.parse();
-        } catch (Error) {
-          console.log("Invalid upload: " + image.name); // Could handle this error differently
-        }
+      const metaData = await sharp(image.path).metadata()
+      if (image.type == "image/jpeg") {
+        const buffer = fs.readFileSync(image.path)
+        const parser = exifParser.create(buffer);
+        var result = parser.parse();
         var createTime = result.tags.CreateDate;
       }
 
-      const url = await uploadFile(image);
+      const height = metaData.height!
+      const width = metaData.width!
+      const gcStorageName = await uploadFile(image);
 
       await prisma.image.create({
         data: {
           name: image.name,
           created: createTime ? new Date(createTime).toISOString() : new Date(Date.now()).toISOString(),
           group_id: group.id,
-          url: url,
+          gcStorageName,
+          height,
+          width
         },
       });
     })
