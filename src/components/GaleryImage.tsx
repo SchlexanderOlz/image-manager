@@ -6,16 +6,23 @@ export default function GaleryImage({
   imageProps: { alt, title, sizes, className, onClick },
   wrapperStyle,
 }: RenderPhotoProps) {
-  console.log("sosoosoa")
+  const showImageProps = (event: any) => {};
+
   return (
-    <div className="relative border rounded-md" style={{ ...wrapperStyle }}>
-      <Image
-        fill
-        src={photo}
-        placeholder={"blurDataURL" in photo ? "blur" : undefined}
-        {...{ alt, title, sizes, className, onClick }}
-        className="rounded-full"
-      />
-    </div>
+    <>
+      <div
+        className="relative border-4 border-secondary rounded-md transform hover:scale-110 transition-transform duration-500 ease-in-out"
+        style={{ ...wrapperStyle }}
+      >
+        <Image
+          fill
+          src={photo}
+          placeholder={"blurDataURL" in photo ? "blur" : undefined}
+          {...{ alt, title, sizes, onClick, className }}
+          className="transition-transform duration-500 ease-in-out"
+        />
+      </div>
+
+    </>
   );
 }

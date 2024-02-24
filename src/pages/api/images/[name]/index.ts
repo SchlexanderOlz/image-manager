@@ -1,4 +1,3 @@
-import { getImageUrls } from "@/lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
 import { createBucketReadStream } from "@/lib/cloud";
 

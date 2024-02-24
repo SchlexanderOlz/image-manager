@@ -27,7 +27,7 @@ model Image {
   name String
   created DateTime
   description String?
-  gcStorageName String 
+  gcStorageName String @unique
   height Int
   width Int
   keywords ImageKeyword[]
