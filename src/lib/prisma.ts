@@ -38,6 +38,10 @@ export const getImageData = async (name: string) => {
     where: {
       gcStorageName: name,
     },
+    include: {
+      group: true,
+      keywords: true
+    }
   });
 };
 

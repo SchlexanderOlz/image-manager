@@ -9,14 +9,10 @@ export const config = {
   },
 };
 
-export default async function handler(
+export default async function POST(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== "POST") {
-    res.status(405).send(`Method not allowed`);
-    return;
-  }
   const form = formidable({
     multiples: true,
   });

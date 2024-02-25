@@ -7,12 +7,27 @@ import * as prisma from "@prisma/client";
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 const Galery = () => {
+  interface ImageDataResponse extends prisma.Image {
+    group: {
+      id: number;
+      name: string;
+      description: string | null;
+      start: Date | null;
+      end: Date | null;
+      location: string | null;
+    };
+    keywords: {
+      id: number;
+      keyWord: string;
+      image_id: number;
+    }[];
+  }
   const [currentPage, setCurrentPage] = useState(0);
 
   const [photos, setPhotos] = useState<Photo[]>([]);
 
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
-  const [imageData, setImageData] = useState<prisma.Image | null>(null);
+  const [imageData, setImageData] = useState<ImageDataResponse | null>(null);
   const [transitionDirection, setTransitionDirection] = useState<
     "left" | "right" | null
   >(null);
@@ -48,7 +63,7 @@ const Galery = () => {
     });
   };
 
-  const getPhotoData = async (src: string): Promise<prisma.Image> => {
+  const getPhotoData = async (src: string): Promise<ImageDataResponse> => {
     const data = await fetch(`${src}/data`).then((res) => res.json());
     console.log(data);
     return data;
@@ -62,15 +77,15 @@ const Galery = () => {
   };
 
   const slideTo = async (index: number) => {
-    let imgData = new Promise((resolve, reject) => {
+    let imgData = new Promise((resolve, _) => {
+      const data = getPhotoData(photos[index].src);
       setTimeout(async () => {
         setTransitionDirection(null);
-        const data = await getPhotoData(photos[index].src);
-        resolve(data);
+        resolve(await data);
       }, 100);
     });
 
-    setImageData((await imgData) as prisma.Image);
+    setImageData((await imgData) as ImageDataResponse);
     setFocusedIndex(index);
   };
 
@@ -146,8 +161,55 @@ const Galery = () => {
                   transitionDirection ? "opacity-0" : ""
                 }`}
               >
-                <h2 className="card-title">{imageData?.name}</h2>
-                <p>Created: {imageData?.created}</p>
+                <div className="bg-gray-800 text-white shadow-md rounded px-8 pt-6 pb-4 flex flex-col">
+                  <h2 className="font-bold text-2xl mb-2 text-sky-200">
+                    {imageData?.name}
+                  </h2>
+                  <p className="mb-2">
+                    Created:{" "}
+                    <span className="font-semibold text-blue-300">
+                      {imageData?.created ? new Intl.DateTimeFormat("en-GB", {
+                        year: "numeric",
+                        month: "long",
+                        day: "2-digit",
+                      }).format(new Date(imageData?.created)) : ""}
+                    </span>
+                  </p>
+                  <p className="mb-2">
+                    Group Name:{" "}
+                    <span className="font-semibold text-blue-300">
+                      {imageData?.group.name}
+                    </span>
+                  </p>
+                  <p className="mb-2">
+                    Group Description:{" "}
+                    <span className="font-semibold text-blue-300">
+                      {imageData?.group.description}
+                    </span>
+                  </p>
+                  <p className="mb-2">
+                    Time Range:{" "}
+                    <span className="font-semibold text-blue-300">
+                      {new Intl.DateTimeFormat("en-GB", {
+                        year: "numeric",
+                        month: "long",
+                        day: "2-digit",
+                      }).format(imageData?.group.start)}
+                      -
+                      {new Intl.DateTimeFormat("en-GB", {
+                        year: "numeric",
+                        month: "long",
+                        day: "2-digit",
+                      }).format(imageData?.group.end)}
+                    </span>
+                  </p>
+                  <p className="mb-2">
+                    Location:{" "}
+                    <span className="font-semibold text-blue-300">
+                      {imageData?.group.location}
+                    </span>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
