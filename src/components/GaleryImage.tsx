@@ -11,7 +11,7 @@ export default function GaleryImage({
   return (
     <>
       <div
-        className="relative border-4 border-secondary rounded-md transform hover:scale-110 transition-transform duration-500 ease-in-out"
+        className="relative border-2 md:border-4 border-gray-300 rounded-md transform hover:scale-110 transition-transform duration-500 ease-in-out"
         style={{ ...wrapperStyle }}
       >
         <Image
@@ -19,7 +19,7 @@ export default function GaleryImage({
           src={photo}
           placeholder={"blurDataURL" in photo ? "blur" : undefined}
           {...{ alt, title, sizes, onClick, className }}
-          className="transition-transform duration-500 ease-in-out"
+          className="transition-transform duration-500 ease-in-out border-2"
         />
       </div>
 
