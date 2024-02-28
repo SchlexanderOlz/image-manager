@@ -52,12 +52,12 @@ function LoginPage() {
     setPasswordInputError(false);
   }
   return (
-    <div className="flex justify-center items-center m-auto p-3 bg-base-100 h-screen">
-      <h1 className="text-center text-4xl font-bold mb-4 mr-10">Image Manager</h1>
-      <div className="divider divider-horizontal h-2/3 my-auto"></div>
+    <div className="md:flex justify-center items-center m-auto p-3 bg-base-100 h-screen">
+      <h1 className="text-center text-5xl mdtext-4xl font-bold mb-4 md:mr-10 mt-10 md:mt-0">Image Manager</h1>
+      <div className="md:divider md:divider-horizontal md:h-2/3 md:my-auto"></div>
       <form
         onSubmit={handleSubmit}
-        className="bg-primary-100 shadow-md rounded px-8 pt-6 pb-8 mb-4"
+        className="bg-primary-100 shadow-md rounded px-8 pt-6 pb-8 mb-4 mb-10 md:mb-0"
       >
         <div className="mb-4">
           <label
