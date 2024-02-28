@@ -6,12 +6,11 @@ export default function GaleryImage({
   imageProps: { alt, title, sizes, className, onClick },
   wrapperStyle,
 }: RenderPhotoProps) {
-  const showImageProps = (event: any) => {};
 
   return (
     <>
       <div
-        className="relative border-2 md:border-4 border-gray-300 rounded-md transform hover:scale-110 transition-transform duration-500 ease-in-out"
+        className="relative border-2 md:border-4 border-sky-200 rounded-md transform hover:scale-110 transition-transform duration-500 ease-in-out"
         style={{ ...wrapperStyle }}
       >
         <Image

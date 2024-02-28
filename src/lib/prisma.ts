@@ -112,3 +112,5 @@ export const uploadImages = async (upload: PictureGroupUpload) => {
 
   await Promise.all(uploads);
 };
+
+export default prisma;

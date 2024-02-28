@@ -3,6 +3,7 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/pages/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
@@ -15,16 +16,20 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("daisyui")],
-    daisyui: {
+  plugins: [
+    require("daisyui"),
+    require("@tailwindcss/forms"),
+    require("@tailwindcss/line-clamp"),
+  ],
+  daisyui: {
     themes: ["synthwave"],
     darkTheme: "dark",
-    base: true, 
+    base: true,
     styled: true,
     utils: true,
     prefix: "",
     logs: true,
     themeRoot: ":root",
-  }
+  },
 };
 export default config;
