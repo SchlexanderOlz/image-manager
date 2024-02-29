@@ -2,7 +2,7 @@ import { TransferManager, Storage } from "@google-cloud/storage";
 import { createReadStream } from "fs";
 import { createHash } from "crypto";
 
-const projectId = "image-manager-414916";
+const projectId = process.env.BUCKET_ID!;
 
 const storage = new Storage({ projectId });
 const bucket = storage.bucket(process.env.BUCKET_NAME!);

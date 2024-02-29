@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { SHA256 as sha256 } from "crypto-js";
 import * as email_validator from "email-validator";
 import { signIn } from "next-auth/react";
 import "@/app/globals.css";
@@ -53,7 +52,7 @@ function LoginPage() {
   }
   return (
     <div className="md:flex justify-center items-center m-auto p-3 bg-base-100 h-screen">
-      <h1 className="text-center text-5xl mdtext-4xl font-bold mb-4 md:mr-10 mt-10 md:mt-0">Image Manager</h1>
+      <h1 className="text-center text-5xl mdtext-4xl font-bold text-white mb-4 md:mr-10 mt-10 md:mt-0">Image Manager</h1>
       <div className="md:divider md:divider-horizontal md:h-2/3 md:my-auto"></div>
       <form
         onSubmit={handleSubmit}
@@ -61,13 +60,13 @@ function LoginPage() {
       >
         <div className="mb-4">
           <label
-            className="block text-primary-700 text-sm font-bold mb-2"
+            className="block text-primary-700 text-sm font-bold mb-2 text-white"
             htmlFor="email"
           >
             Email
           </label>
           <input
-            className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+            className={`shadow appearance-none border rounded w-full py-2 px-3  text-gray-700 leading-tight focus:outline-none focus:shadow-outline  ${
               emailInPutError ? "border-red-500" : ""
             }`}
             id="email"
@@ -80,7 +79,7 @@ function LoginPage() {
         </div>
         <div className="mb-6">
           <label
-            className="block text-primary-700 text-sm font-bold mb-2"
+            className="block text-primary-700 text-sm font-bold mb-2 text-white"
             htmlFor="password"
           >
             Password

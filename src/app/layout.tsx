@@ -21,10 +21,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ComponentProvider>
-          <header>
+          <header className="text-white">
             <Nav />
           </header>
-          <div className="p-5 flex flex-row justify-center bg-base-100">
+          <div className="p-5 flex flex-row justify-center bg-base-100 text-white">
             {children}
           </div>
           <Footer></Footer>
