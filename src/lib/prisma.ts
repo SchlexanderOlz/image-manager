@@ -1,6 +1,6 @@
 "use server";
 
-import { Group, PrismaClient } from "@prisma/client";
+import { Group, Prisma, PrismaClient } from "@prisma/client";
 import { uploadFile } from "./cloud";
 import * as exifParser from "exif-parser";
 import * as fs from "fs";
@@ -40,8 +40,29 @@ export const getImageData = async (name: string) => {
     },
     include: {
       group: true,
-      keywords: true
-    }
+      keywords: true,
+    },
+  });
+};
+
+export const getImageByFileName = async (name: string) => {
+  return await prisma.image.findUniqueOrThrow({
+    where: {
+      gcStorageName: name,
+    },
+  });
+};
+
+export const updateImageByFileName = async (name: string, update: Object) => {
+  return await prisma.image.update({
+    where: {
+      gcStorageName: name,
+    },
+    data: update,
+    include: {
+      group: true,
+      keywords: true,
+    },
   });
 };
 

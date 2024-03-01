@@ -31,6 +31,10 @@ const Galery = () => {
   const [transitionDirection, setTransitionDirection] = useState<
     "left" | "right" | null
   >(null);
+  const [imageChange, setImageChange] = useState<{
+    field: string;
+    value: string;
+  } | null>();
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -63,6 +67,23 @@ const Galery = () => {
     });
   };
 
+  const handleImageChange = async (event: React.KeyboardEvent) => {
+    if (event.key === "Enter") {
+      let obj: any = {};
+      obj[imageChange?.field!] = imageChange?.value;
+      updateImage(obj);
+    }
+  };
+
+  const updateImage = async (obj: object) => {
+    const res = await fetch(`${photos[focusedIndex!].src}`, {
+      body: JSON.stringify(obj),
+      method: "PATCH",
+    }).then((res) => res.json());
+    setImageData(res);
+    setImageChange(null);
+  };
+
   const getPhotoData = async (src: string): Promise<ImageDataResponse> => {
     const data = await fetch(`${src}/data`).then((res) => res.json());
     console.log(data);
@@ -74,6 +95,7 @@ const Galery = () => {
     setImageData(await getPhotoData(photos[index].src));
     console.log(imageData);
     document.getElementById("image_info_modal")!.showModal();
+    setImageChange(null);
   };
 
   const slideTo = async (index: number) => {
@@ -87,6 +109,7 @@ const Galery = () => {
 
     setImageData((await imgData) as ImageDataResponse);
     setFocusedIndex(index);
+    setImageChange(null);
   };
 
   return (
@@ -167,19 +190,69 @@ const Galery = () => {
                   }`}
                 >
                   <div className="bg-gray-800 text-white shadow-md rounded px-8 pt-6 pb-4 flex flex-col">
-                    <h2 className="font-bold text-2xl mb-2 text-sky-200">
-                      {imageData?.name}
+                    <h2
+                      className="font-bold text-2xl mb-2 text-sky-200"
+                      onClick={() => {
+                        setImageChange({
+                          field: "name",
+                          value: imageData?.name!,
+                        });
+                      }}
+                    >
+                      {imageChange?.field != "name" ? (
+                        imageData?.name
+                      ) : (
+                        <input
+                          type="text"
+                          placeholder={imageData?.name}
+                          className="input input-bordered w-full max-w-xs h-12"
+                          value={imageChange?.value}
+                          onKeyDown={handleImageChange}
+                          onChange={(event) =>
+                            setImageChange({
+                              field: "name",
+                              value: event.target.value,
+                            })
+                          }
+                        />
+                      )}
                     </h2>
                     <p className="mb-2">
                       Created:{" "}
-                      <span className="font-semibold text-blue-300">
-                        {imageData?.created
-                          ? new Intl.DateTimeFormat("en-GB", {
-                              year: "numeric",
-                              month: "long",
-                              day: "2-digit",
-                            }).format(new Date(imageData?.created))
-                          : ""}
+                      <span
+                        className="font-semibold text-blue-300"
+                        onClick={() => {
+                          setImageChange({
+                            field: "created",
+                            value: imageData?.created! as any,
+                          });
+                        }}
+                      >
+                        {imageChange?.field == "created" ? (
+                          <input
+                            type="date"
+                            placeholder={imageData?.created! as any}
+                            className="input input-bordered w-full max-w-xs h-12"
+                            value={
+                              new Date(imageChange?.value)
+                                .toISOString()
+                                .split("T")[0]
+                            }
+                            onChange={(event) => {
+                              updateImage({
+                                created: new Date(event.target.value),
+                              });
+                            }}
+                          />
+                        ) : imageData?.created ? (
+                          new Intl.DateTimeFormat("en-GB", {
+                            year: "numeric",
+                            month: "long",
+                            day: "2-digit",
+                          }).format(new Date(imageData?.created))
+                        ) : (
+                          ""
+                        )}
                       </span>
                     </p>
                     <p className="mb-2">
