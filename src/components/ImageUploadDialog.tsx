@@ -206,7 +206,7 @@ export default function ImageUploadDialog() {
             <div className="p-4 rounded-md border overflow-auto min-h-16 md:min-h-32 max-h-52 w-80 align-baseline border-secondary mt-4">
               <div className="mt-5">
                 {keywords.map((keyword, i) => (
-                  <div className="badge badge-primary badge-outline transform hover:scale-110 mr-1">
+                  <div key={i} className="badge badge-primary badge-outline transform hover:scale-110 mr-1">
                     <svg
                       onClick={() => deleteKeyword(i)}
                       xmlns="http://www.w3.org/2000/svg"

@@ -34,21 +34,6 @@ const Galery = () => {
     value: string;
   } | null>();
 
-  const fetchImages = async () => {
-    const data = await fetch(`/api/images/urls/page/${currentPage}`).then(
-      (res) => res.json()
-    );
-    let res = await urlsToPhotos(data.urls);
-    setPhotos(res);
-  };
-  useEffect(() => {
-    fetchImages();
-  }, []);
-
-  useEffect(() => {
-    console.log(photos);
-  }, [photos]);
-
   interface ImageUrlsResponse {
     url: string;
     height: number;
@@ -64,6 +49,17 @@ const Galery = () => {
       } as Photo;
     });
   };
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      const data = await fetch(`/api/images/urls/page/${currentPage}`).then(
+        (res) => res.json()
+      );
+      let res = await urlsToPhotos(data.urls);
+      setPhotos(res);
+    };
+    fetchImages();
+  });
 
   const deleteImage = async (name: string) => {
     const response = await fetch(`/api/images/${name}`, {
@@ -99,7 +95,7 @@ const Galery = () => {
     setFocusedIndex(index);
     setImageData(await getPhotoData(photos[index].src));
     console.log(imageData);
-    document.getElementById("image_info_modal")!.showModal();
+    (document.getElementById("image_info_modal")! as any).showModal();
     setImageChange(null);
   };
 
@@ -327,13 +323,13 @@ const Galery = () => {
                           year: "numeric",
                           month: "long",
                           day: "2-digit",
-                        }).format(imageData?.group.start)}
+                        }).format(imageData?.group.start as any)}
                         -
                         {new Intl.DateTimeFormat("en-GB", {
                           year: "numeric",
                           month: "long",
                           day: "2-digit",
-                        }).format(imageData?.group.end)}
+                        }).format(imageData?.group.end as any)}
                       </span>
                     </p>
                     <p className="mb-2">

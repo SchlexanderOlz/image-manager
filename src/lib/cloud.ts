@@ -21,7 +21,7 @@ export const uploadFile = async (file: File): Promise<string> => {
   });
 
   return new Promise((resolve, reject) => {
-    createReadStream(file.path)
+    createReadStream((file as any).path)
       .pipe(stream)
       .on("finish", async () => {
         resolve(ref.name);

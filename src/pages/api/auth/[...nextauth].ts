@@ -1,4 +1,5 @@
 import NextAuth, { AuthOptions } from "next-auth";
+import { AdapterUser } from "next-auth/adapters";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
@@ -6,6 +7,16 @@ import { Session } from "next-auth";
 import { User } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
 
+const session = (
+  session: Session,
+  token: any,
+  user: AdapterUser & { id: number }
+) => {
+  if (user !== null) {
+    session.user = user;
+  }
+  return Promise.resolve(session);
+};
 
 const options: AuthOptions = {
   providers: [
@@ -63,17 +74,13 @@ const options: AuthOptions = {
   },
 
   callbacks: {
-  async session(session: Session, token?: any, user: User & { id: number }) {
-    if (user !== null) {
-      session.user = user;
-    }
-    return Promise.resolve(session);
-  },
+    session: session as any,
 
-  async jwt(token: any, user?: User & { id: number }) {
-    return Promise.resolve(token);
-  },
+    async jwt(token: any, user?: User & { id: number }) {
+      return Promise.resolve(token);
+    },
   },
 };
 
-export default (req: NextApiRequest, res: NextApiResponse) => NextAuth(req, res, options);
+export default (req: NextApiRequest, res: NextApiResponse) =>
+  NextAuth(req, res, options);

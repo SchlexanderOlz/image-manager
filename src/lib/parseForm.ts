@@ -1,4 +1,4 @@
-import formidable from "formidable-serverless";
+import formidable from "formidable";
 import IncomingForm from "formidable/Formidable";
 import { IncomingMessage } from "http";
 

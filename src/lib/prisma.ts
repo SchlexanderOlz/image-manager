@@ -2,6 +2,7 @@
 
 import { Group, Prisma, PrismaClient } from "@prisma/client";
 import { uploadFile, deleteFile } from "./cloud";
+
 import * as exifParser from "exif-parser";
 import * as fs from "fs";
 import sharp from "sharp";
@@ -72,7 +73,7 @@ export const deleteImageByFileName = async (name: string) => {
       gcStorageName: name,
     },
   });
-  await deleteFile(name)
+  await deleteFile(name);
 };
 
 export const uploadImages = async (upload: PictureGroupUpload) => {
@@ -113,9 +114,9 @@ export const uploadImages = async (upload: PictureGroupUpload) => {
 
   uploads.concat(
     upload.images.map(async (image) => {
-      const metaData = await sharp(image.path).metadata();
+      const metaData = await sharp((image as any).path).metadata();
       if (image.type == "image/jpeg") {
-        const buffer = fs.readFileSync(image.path);
+        const buffer = fs.readFileSync((image as any).path);
         const parser = exifParser.create(buffer);
         var result = parser.parse();
         var createTime = result.tags.CreateDate;

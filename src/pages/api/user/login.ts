@@ -33,8 +33,8 @@ async function loginUserHandler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
   if (user && user.password === hashPassword(password)) {
-    delete user["password"];
-    return res.status(200).json(user);
+    const { password, ...userWithoutPassword } = user;
+    return res.status(200).json(userWithoutPassword);
   }
   return res.status(401).json({ message: "invalid credentials" });
 }
