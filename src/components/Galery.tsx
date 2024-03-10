@@ -59,7 +59,7 @@ const Galery = () => {
       setPhotos(res);
     };
     fetchImages();
-  });
+  }, []);
 
   const deleteImage = async (name: string) => {
     const response = await fetch(`/api/images/${name}`, {
