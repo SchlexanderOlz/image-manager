@@ -1,5 +1,5 @@
 import parseForm from "@/lib/parseForm";
-import formidable from "formidable";
+import formidable from "formidable-serverless";
 import { NextApiRequest, NextApiResponse } from "next";
 import { PictureGroupUpload, uploadImages } from "@/lib/prisma";
 
