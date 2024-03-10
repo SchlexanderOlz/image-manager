@@ -253,7 +253,8 @@ export default function ImageUploadDialog() {
       </div>
       <div className="relative flex flex-col items-center justify-center">
         <button
-          onClick={upload}
+          onClick={() => upload()}
+          onTouchEnd={() => upload()}
           className="btn btn-outline btn-primary md:w-1/5 w-full mt-5"
         >
           Upload All
