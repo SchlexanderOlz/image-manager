@@ -1,4 +1,0 @@
--- AlterTable
-ALTER TABLE "Group" ADD COLUMN "end" DATETIME;
-ALTER TABLE "Group" ADD COLUMN "location" TEXT;
-ALTER TABLE "Group" ADD COLUMN "start" DATETIME;

@@ -1,7 +1,7 @@
 "use server";
 
 import { Group, Prisma, PrismaClient } from "@prisma/client";
-import { uploadFile } from "./cloud";
+import { uploadFile, deleteFile } from "./cloud";
 import * as exifParser from "exif-parser";
 import * as fs from "fs";
 import sharp from "sharp";
@@ -64,6 +64,15 @@ export const updateImageByFileName = async (name: string, update: Object) => {
       keywords: true,
     },
   });
+};
+
+export const deleteImageByFileName = async (name: string) => {
+  await prisma.image.delete({
+    where: {
+      gcStorageName: name,
+    },
+  });
+  await deleteFile(name)
 };
 
 export const uploadImages = async (upload: PictureGroupUpload) => {

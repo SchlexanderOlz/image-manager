@@ -46,6 +46,10 @@ export const uploadFiles = async (files: File[]): Promise<string[]> => {
   return urls;
 };
 
+export const deleteFile = async (name: string) => {
+  bucket.file(name).delete()
+}
+
 
 export const createBucketReadStream = async (filename: string) => {
   const ref = bucket.file(filename);

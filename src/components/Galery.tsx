@@ -4,8 +4,6 @@ import PhotoAlbum, { Photo } from "react-photo-album";
 import GaleryImage from "./GaleryImage";
 import * as prisma from "@prisma/client";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
 const Galery = () => {
   interface ImageDataResponse extends prisma.Image {
     group: {
@@ -36,14 +34,14 @@ const Galery = () => {
     value: string;
   } | null>();
 
+  const fetchImages = async () => {
+    const data = await fetch(`/api/images/urls/page/${currentPage}`).then(
+      (res) => res.json()
+    );
+    let res = await urlsToPhotos(data.urls);
+    setPhotos(res);
+  };
   useEffect(() => {
-    const fetchImages = async () => {
-      const data = await fetch(`/api/images/urls/page/${currentPage}`).then(
-        (res) => res.json()
-      );
-      let res = await urlsToPhotos(data.urls);
-      setPhotos(res);
-    };
     fetchImages();
   }, []);
 
@@ -65,6 +63,13 @@ const Galery = () => {
         height: image.height,
       } as Photo;
     });
+  };
+
+  const deleteImage = async (name: string) => {
+    const response = await fetch(`/api/images/${name}`, {
+      method: "DELETE",
+    });
+    //TODO: Reload the images in the back here
   };
 
   const handleImageChange = async (event: React.KeyboardEvent) => {
@@ -339,6 +344,12 @@ const Galery = () => {
                     </p>
                   </div>
                 </div>
+                <button
+                  className="btn bg-red-600"
+                  onClick={() => deleteImage(imageData?.gcStorageName!)}
+                >
+                  Delete
+                </button>
               </div>
             </div>
             <form method="dialog" className="modal-backdrop">
