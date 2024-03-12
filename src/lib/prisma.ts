@@ -19,18 +19,71 @@ export interface PictureGroupUpload {
   location: string;
 }
 
-export const getImages = async (page: number, perPage: number = 50) => {
-  return prisma.image.findMany({ skip: page * perPage, take: perPage });
+export interface ImageFilterQuery {
+  search: string | undefined;
+  begin: Date | undefined;
+  end: Date | undefined;
+}
+
+const makeFilter = (filter?: ImageFilterQuery) => {
+  const orConditions = [];
+  const andConditions = [];
+
+  if (filter?.search != undefined) {
+    orConditions.push(
+      { name: { contains: filter.search, mode: "insensitive" } },
+      { description: { contains: filter.search, mode: "insensitive" } },
+      {
+        keywords: {
+          some: { keyWord: { contains: filter.search, mode: "insensitive" } },
+        },
+      },
+      { group: { name: { contains: filter.search, mode: "insensitive" } } },
+      {
+        group: {
+          description: { contains: filter.search, mode: "insensitive" },
+        },
+      }
+    );
+  }
+
+  if (filter?.begin || filter?.end) {
+    andConditions.push({
+      OR: [
+        { created: { gte: filter?.begin, lte: filter?.end } },
+        { group: { start: { gte: filter?.begin }, end: { lte: filter?.end } } },
+      ],
+    });
+  }
+
+  return {
+    AND: [
+      {
+        OR: [...orConditions],
+        AND: [...andConditions],
+      },
+    ],
+  };
+};
+
+export const getImages = async (filter?: ImageFilterQuery) => {
+  return await prisma.image.findMany({
+    where: makeFilter(filter) as any,
+    orderBy: {
+      created: "desc",
+    },
+  });
 };
 
 export const getImageUrls = async (
-  page: number,
-  perPage: number = 50
+  filter?: ImageFilterQuery
 ): Promise<{ gcStorageName: string; height: number; width: number }[]> => {
   return await prisma.image.findMany({
-    skip: page * perPage,
-    take: perPage,
     select: { gcStorageName: true, height: true, width: true },
+    where: makeFilter(filter) as any,
+    orderBy: {
+      created: "desc",
+    },
   });
 };
 

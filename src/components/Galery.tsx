@@ -21,11 +21,15 @@ const Galery = () => {
       image_id: number;
     }[];
   }
-  const router = useRouter()
-  const [currentPage, setCurrentPage] = useState(0);
+  const router = useRouter();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const [imageData, setImageData] = useState<ImageDataResponse | null>(null);
+  const [filter, setFilter] = useState<{
+    search: string | undefined;
+    begin: Date | undefined;
+    end: Date | undefined;
+  }>();
   const [transitionDirection, setTransitionDirection] = useState<
     "left" | "right" | null
   >(null);
@@ -50,27 +54,54 @@ const Galery = () => {
     });
   };
 
-  useEffect(() => {
-    const fetchImages = async () => {
-      const data = await fetch(`/api/images/urls/page/${currentPage}`).then(
-        (res) => res.json()
-      );
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
+  const displaySearchImages = async (
+    search?: string,
+    begin?: Date,
+    end?: Date
+  ) => {
+    if (timeoutId != null) {
+      clearTimeout(timeoutId);
+    }
+
+    const id = setTimeout(async () => {
+      const beginISO = begin
+        ? `begin=${encodeURIComponent(begin.toISOString())}`
+        : undefined;
+      const endISO = end
+        ? `end=${encodeURIComponent(end.toISOString())}`
+        : undefined;
+      const encodedSearch = search
+        ? `search=${encodeURIComponent(search)}`
+        : undefined;
+
+      let url = "/api/images/urls?";
+      const params = [encodedSearch, beginISO, endISO].filter(Boolean);
+      url += params.join("&");
+
+      const data = await fetch(url).then((res) => res.json());
       const res = await urlsToPhotos(data.urls);
       setPhotos(res);
-    };
-    fetchImages();
-  }, []);
+      setTimeoutId(null);
+    }, 200);
+    setTimeoutId(id);
+  };
+
+  useEffect(() => {
+    displaySearchImages(filter?.search, filter?.begin, filter?.end);
+  }, [filter]);
 
   const deleteImage = async (name: string) => {
     const response = await fetch(`/api/images/${name}`, {
       method: "DELETE",
     });
     if (response.status != 204) return;
-    let photoCopy = [...photos]
-    const idx = photoCopy.findIndex(e => e.src.includes(name))
-    photoCopy.splice(idx, 1)
+    let photoCopy = [...photos];
+    const idx = photoCopy.findIndex((e) => e.src.includes(name));
+    photoCopy.splice(idx, 1);
     setPhotos(photoCopy);
-    (document.getElementById("image_info_modal")! as any).close()
+    (document.getElementById("image_info_modal")! as any).close();
   };
 
   const handleImageChange = async (event: React.KeyboardEvent) => {
@@ -100,10 +131,10 @@ const Galery = () => {
     setFocusedIndex(index);
     setImageData(await getPhotoData(photos[index].src));
     console.log(imageData);
-    let modal = document.getElementById("image_info_modal")! as any
-    modal.scrollTop = 0
+    let modal = document.getElementById("image_info_modal")! as any;
+    modal.scrollTop = 0;
     modal.showModal();
-    router.push("#slide")
+    router.push("#slide");
     setImageChange(null);
   };
 
@@ -118,7 +149,13 @@ const Galery = () => {
     setImageData((await imgData) as ImageDataResponse);
     setFocusedIndex(index);
     setImageChange(null);
-    router.push("#slide")
+    router.push("#slide");
+  };
+
+  const setFilterValue = async (object: any) => {
+    for (const key of Object.keys(object)) {
+      setFilter({ ...filter, [key]: object[key] } as any);
+    }
   };
 
   return (
@@ -133,6 +170,9 @@ const Galery = () => {
               type="text"
               className="grow border-none focus:outline-none focus:ring-0"
               placeholder="Search..."
+              onChange={(event) =>
+                setFilterValue({ search: event.target.value })
+              }
             />
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -158,6 +198,13 @@ const Galery = () => {
               name="beginTime"
               placeholder="Timestart"
               className="input input-secondary input-bordered w-full max-w-xs h-12 mr-3"
+              onChange={(event) =>
+                setFilterValue({
+                  begin: event.target.value
+                    ? new Date(event.target.value)
+                    : undefined,
+                })
+              }
             />
           </label>
           <label className="form-control w-full max-w-xs">
@@ -167,9 +214,16 @@ const Galery = () => {
 
             <input
               type="date"
-              name="beginTime"
+              name="endTime"
               placeholder="Timestart"
               className="input input-secondary input-bordered w-full max-w-xs h-12 ml-3"
+              onChange={(event) =>
+                setFilterValue({
+                  end: event.target.value
+                    ? new Date(event.target.value)
+                    : undefined,
+                })
+              }
             />
           </label>
         </div>
@@ -212,7 +266,10 @@ const Galery = () => {
                               : ""
                           }`}
                         />
-                        <div id="modal-image-slide-buttons" className="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
+                        <div
+                          id="modal-image-slide-buttons"
+                          className="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2"
+                        >
                           <a
                             onClick={() => {
                               setTransitionDirection("left");
