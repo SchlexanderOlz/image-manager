@@ -8,9 +8,9 @@ export default async function GET(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "DELETE") return DELETE(req, res);
   const name = req.query.name! as string;
 
-  (await createBucketReadStream(name)).pipe(res)
 
   res.status(200);
+  (await createBucketReadStream(name)).pipe(res)
 }
 
 export async function PATCH(req: NextApiRequest, res: NextApiResponse) {
@@ -20,7 +20,7 @@ export async function PATCH(req: NextApiRequest, res: NextApiResponse) {
 
   console.log(instance)
   res.json(instance)
-  res.status(200);
+  res.status(200).end();
 }
 
 
@@ -28,6 +28,6 @@ export async function DELETE(req: NextApiRequest, res: NextApiResponse) {
   const name = req.query.name! as string;
   await deleteImageByFileName(name)
 
-  res.status(204);
+  res.status(204).end();
 }
 

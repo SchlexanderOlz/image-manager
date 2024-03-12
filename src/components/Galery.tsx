@@ -3,6 +3,7 @@ import Image from "next/image";
 import PhotoAlbum, { Photo } from "react-photo-album";
 import GaleryImage from "./GaleryImage";
 import * as prisma from "@prisma/client";
+import { useRouter } from "next/navigation";
 
 const Galery = () => {
   interface ImageDataResponse extends prisma.Image {
@@ -20,10 +21,9 @@ const Galery = () => {
       image_id: number;
     }[];
   }
+  const router = useRouter()
   const [currentPage, setCurrentPage] = useState(0);
-
   const [photos, setPhotos] = useState<Photo[]>([]);
-
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const [imageData, setImageData] = useState<ImageDataResponse | null>(null);
   const [transitionDirection, setTransitionDirection] = useState<
@@ -55,7 +55,7 @@ const Galery = () => {
       const data = await fetch(`/api/images/urls/page/${currentPage}`).then(
         (res) => res.json()
       );
-      let res = await urlsToPhotos(data.urls);
+      const res = await urlsToPhotos(data.urls);
       setPhotos(res);
     };
     fetchImages();
@@ -65,7 +65,12 @@ const Galery = () => {
     const response = await fetch(`/api/images/${name}`, {
       method: "DELETE",
     });
-    //TODO: Reload the images in the back here
+    if (response.status != 204) return;
+    let photoCopy = [...photos]
+    const idx = photoCopy.findIndex(e => e.src.includes(name))
+    photoCopy.splice(idx, 1)
+    setPhotos(photoCopy);
+    (document.getElementById("image_info_modal")! as any).close()
   };
 
   const handleImageChange = async (event: React.KeyboardEvent) => {
@@ -95,7 +100,10 @@ const Galery = () => {
     setFocusedIndex(index);
     setImageData(await getPhotoData(photos[index].src));
     console.log(imageData);
-    (document.getElementById("image_info_modal")! as any).showModal();
+    let modal = document.getElementById("image_info_modal")! as any
+    modal.scrollTop = 0
+    modal.showModal();
+    router.push("#slide")
     setImageChange(null);
   };
 
@@ -107,10 +115,10 @@ const Galery = () => {
         resolve(await data);
       }, 100);
     });
-
     setImageData((await imgData) as ImageDataResponse);
     setFocusedIndex(index);
     setImageChange(null);
+    router.push("#slide")
   };
 
   return (
@@ -204,7 +212,7 @@ const Galery = () => {
                               : ""
                           }`}
                         />
-                        <div className="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
+                        <div id="modal-image-slide-buttons" className="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
                           <a
                             onClick={() => {
                               setTransitionDirection("left");
