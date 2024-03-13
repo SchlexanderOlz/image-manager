@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { createBucketReadStream } from "@/lib/cloud";
-import { getImageByFileName, updateImageByFileName, deleteImageByFileName } from "@/lib/prisma";
+import { getImageByFileName, updateImageByFileName, deleteImageByFileName, switchGroup } from "@/lib/prisma";
 
 
 export default async function GET(req: NextApiRequest, res: NextApiResponse) {
@@ -15,10 +15,11 @@ export default async function GET(req: NextApiRequest, res: NextApiResponse) {
 
 export async function PATCH(req: NextApiRequest, res: NextApiResponse) {
   const name = req.query.name! as string;
-  const instance = await updateImageByFileName(name, JSON.parse(req.body))
-  console.log(JSON.parse(req.body))
+  let change = JSON.parse(req.body)
+  if (change.groupname) switchGroup(name, change.groupname)
+  delete change["groupname"]
+  const instance = await updateImageByFileName(name, change)
 
-  console.log(instance)
   res.json(instance)
   res.status(200).end();
 }

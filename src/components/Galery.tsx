@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useDebugValue, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import PhotoAlbum, { Photo } from "react-photo-album";
 import GaleryImage from "./GaleryImage";
@@ -37,6 +37,8 @@ const Galery = () => {
     field: string;
     value: string;
   } | null>();
+
+  const imageEditBox = useRef<HTMLInputElement>(null);
 
   interface ImageUrlsResponse {
     url: string;
@@ -91,6 +93,10 @@ const Galery = () => {
   useEffect(() => {
     displaySearchImages(filter?.search, filter?.begin, filter?.end);
   }, [filter]);
+
+  useEffect(() => {
+    imageEditBox.current?.focus();
+  }, [imageChange]);
 
   const deleteImage = async (name: string) => {
     const response = await fetch(`/api/images/${name}`, {
@@ -256,6 +262,9 @@ const Galery = () => {
                           objectFit="contain"
                           src={photos[focusedIndex]}
                           alt={imageData?.name!}
+                          onClick={() =>
+                            window.open(photos[focusedIndex].src, "_blank")
+                          }
                           className={`transform transition-transform duration-200 ${
                             transitionDirection === "left"
                               ? "-translate-x-full opacity-0"
@@ -309,7 +318,9 @@ const Galery = () => {
                       onClick={() => {
                         setImageChange({
                           field: "name",
-                          value: imageData?.name!,
+                          value: imageChange?.value
+                            ? imageChange.value
+                            : imageData?.name!,
                         });
                       }}
                     >
@@ -317,11 +328,13 @@ const Galery = () => {
                         imageData?.name
                       ) : (
                         <input
+                          ref={imageEditBox}
                           type="text"
                           placeholder={imageData?.name}
                           className="input input-bordered w-full max-w-xs h-12"
                           value={imageChange?.value}
                           onKeyDown={handleImageChange}
+                          onBlur={() => setImageChange(null)}
                           onChange={(event) =>
                             setImageChange({
                               field: "name",
@@ -335,6 +348,7 @@ const Galery = () => {
                       Created:{" "}
                       <span
                         className="font-semibold text-blue-300"
+                        onBlur={() => setImageChange(null)}
                         onClick={() => {
                           setImageChange({
                             field: "created",
@@ -344,6 +358,7 @@ const Galery = () => {
                       >
                         {imageChange?.field == "created" ? (
                           <input
+                            ref={imageEditBox}
                             type="date"
                             placeholder={imageData?.created! as any}
                             className="input input-bordered w-full max-w-xs h-12"
@@ -370,9 +385,70 @@ const Galery = () => {
                       </span>
                     </p>
                     <p className="mb-2">
+                      Description:{" "}
+                      <span
+                        className="font-semibold text-blue-300"
+                        onBlur={() => setImageChange(null)}
+                        onClick={() => {
+                          setImageChange({
+                            field: "description",
+                            value: imageData?.description! as any,
+                          });
+                        }}
+                      >
+                        {imageChange?.field != "description" ? (
+                          imageData?.description || "None"
+                        ) : (
+                          <input
+                            ref={imageEditBox}
+                            type="text"
+                            placeholder={imageData?.description!}
+                            className="input input-bordered w-full max-w-xs h-12"
+                            value={imageChange?.value}
+                            onKeyDown={handleImageChange}
+                            onBlur={() => setImageChange(null)}
+                            onChange={(event) =>
+                              setImageChange({
+                                field: "description",
+                                value: event.target.value,
+                              })
+                            }
+                          />
+                        )}
+                      </span>
+                    </p>
+ 
+                    <p className="mb-2">
                       Group Name:{" "}
-                      <span className="font-semibold text-blue-300">
-                        {imageData?.group.name}
+                      <span
+                        className="font-semibold text-blue-300"
+                        onBlur={() => setImageChange(null)}
+                        onClick={() => {
+                          setImageChange({
+                            field: "groupname",
+                            value: imageData?.group.name! as any,
+                          });
+                        }}
+                      >
+                        {imageChange?.field != "groupname" ? (
+                          imageData?.group.name
+                        ) : (
+                          <input
+                            ref={imageEditBox}
+                            type="text"
+                            placeholder={imageData?.group.name}
+                            className="input input-bordered w-full max-w-xs h-12"
+                            value={imageChange?.value}
+                            onKeyDown={handleImageChange}
+                            onBlur={() => setImageChange(null)}
+                            onChange={(event) =>
+                              setImageChange({
+                                field: "groupname",
+                                value: event.target.value,
+                              })
+                            }
+                          />
+                        )}
                       </span>
                     </p>
                     <p className="mb-2">
@@ -388,13 +464,13 @@ const Galery = () => {
                           year: "numeric",
                           month: "long",
                           day: "2-digit",
-                        }).format(imageData?.group.start as any)}
+                        }).format(new Date(imageData?.group.start || 0 as any).getTime())}
                         -
                         {new Intl.DateTimeFormat("en-GB", {
                           year: "numeric",
                           month: "long",
                           day: "2-digit",
-                        }).format(imageData?.group.end as any)}
+                        }).format(new Date(imageData?.group.end || 0 as any).getTime())}
                       </span>
                     </p>
                     <p className="mb-2">

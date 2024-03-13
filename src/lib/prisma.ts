@@ -120,6 +120,31 @@ export const updateImageByFileName = async (name: string, update: Object) => {
   });
 };
 
+export const switchGroup = async (name: string, groupname: string) => {
+  let group = await prisma.group.findUnique({
+    where: {
+      name: groupname
+    }
+  })
+  if (group == null) {
+    group = await prisma.group.create({
+      data: {
+        name: groupname,
+        start: new Date(Date.now()),
+        end: new Date(Date.now())
+      }
+    })
+  }
+  await prisma.image.update({
+    where: {
+      gcStorageName: name
+    },
+    data: {
+      group_id: group.id
+    }
+  })
+}
+
 export const deleteImageByFileName = async (name: string) => {
   await prisma.image.delete({
     where: {
