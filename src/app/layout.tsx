@@ -20,15 +20,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ComponentProvider>
-          <header className="text-white">
-            <Nav />
-          </header>
-          <div className="p-5 flex flex-row justify-center bg-base-100 text-white">
-            {children}
-          </div>
-          <Footer></Footer>
-        </ComponentProvider>
+        <div className="flex flex-col min-h-screen bg-base-100">
+          <ComponentProvider>
+            <header className="text-white">
+              <Nav />
+            </header>
+            <div className="p-5 flex flex-row justify-center bg-base-100 text-white">
+              {children}
+            </div>
+            <Footer />
+          </ComponentProvider>
+        </div>
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="footer items-center p-4 bg-neutral text-neutral-content bottom-0 w-full h-1/6">
+    <footer className="mt-auto relative footer items-center p-4 bg-neutral text-neutral-content w-full h-1/6">
       <aside className="items-center grid-flow-col">
         <svg
           width="36"
@@ -15,8 +15,7 @@ export default function Footer() {
         </svg>
         <p>Copyright © 2024 - All right reserved</p>
       </aside>
-      <nav className="grid-flow-col gap-4 md:place-self-center md:justify-self-end">
-      </nav>
+      <nav className="grid-flow-col gap-4 md:place-self-center md:justify-self-end"></nav>
     </footer>
   );
 }
