@@ -32,7 +32,7 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponse) => {
   }
   console.log(res.socket.server)
   if (!res.socket.server.io) {
-    const io = new Server(res.socket?.server, { path: `/api/upload/progress/${id}`});
+    const io = new Server(res.socket?.server, { path: `/api/images/upload/progress/${id}`});
 
     console.log("Requestin Connection")
     io.on("connection", (socket) => {
