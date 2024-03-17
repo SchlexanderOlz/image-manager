@@ -1,24 +1,17 @@
 import NextAuth, { AuthOptions } from "next-auth";
-import { AdapterUser } from "next-auth/adapters";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
-import { Session } from "next-auth";
 import { User } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
 
-const session = (
-  session: Session,
-  token: any,
-  user: AdapterUser & { id: number }
-) => {
-  if (user !== null) {
-    session.user = user;
-  }
+const session = (session: any, token: any, user: User) => {
+  session.session.user!.name = session.token.token.user.name;
+  session.session.user!.email = session.token.token.user.email;
   return Promise.resolve(session);
 };
 
-const options: AuthOptions = {
+export const options: AuthOptions = {
   providers: [
     CredentialsProvider({
       id: "credentials",
@@ -76,7 +69,11 @@ const options: AuthOptions = {
   callbacks: {
     session: session as any,
 
-    async jwt(token: any, user?: User & { id: number }) {
+    async jwt(token: any, user?: User) {
+      if (user) {
+        token.name = user.name;
+        token.email = user.email;
+      }
       return Promise.resolve(token);
     },
   },

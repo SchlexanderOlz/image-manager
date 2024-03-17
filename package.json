@@ -28,7 +28,10 @@
     "react-dom": "^18",
     "react-photo-album": "^2.3.1",
     "sharp": "^0.33.2",
-    "swr": "^2.2.5"
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
+    "swr": "^2.2.5",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
@@ -37,6 +40,9 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/socket.io": "^3.0.2",
+    "@types/socket.io-client": "^3.0.0",
+    "@types/ws": "^8.5.10",
     "autoprefixer": "^10.0.1",
     "daisyui": "^4.7.2",
     "eslint": "^8",

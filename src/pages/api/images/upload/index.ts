@@ -2,6 +2,10 @@ import parseForm from "@/lib/parseForm";
 import formidable from "formidable-serverless";
 import { NextApiRequest, NextApiResponse } from "next";
 import { PictureGroupUpload, uploadImages } from "@/lib/prisma";
+import { registerUpload } from "./progress/[id]";
+import { getServerSession } from "next-auth";
+import { hashUpload } from "@/lib/utils";
+import { options } from "@/pages/api/auth/[...nextauth]"
 
 export const config = {
   api: {
@@ -13,6 +17,12 @@ export default async function POST(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const session = await getServerSession(req, res, options) as any
+  if (!session || !session!.session?.user?.email) {
+    res.status(401)
+    res.end()
+    return
+  }
   const form = formidable({
     multiples: true,
   });
@@ -30,6 +40,13 @@ export default async function POST(
     end: fields.end as any as Date,
     location: fields.location,
   } as any;
-  await uploadImages(upload);
-  res.status(204).end();
+  let hash = hashUpload(upload)
+
+  registerUpload(session!.session.user!.email!, hash).then(async (callback) => {
+    await uploadImages(upload, callback);
+    console.log("All images uploaded")
+  })
+  setTimeout(() => {
+    res.send(hash)
+  }, 500);
 }

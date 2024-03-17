@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import UploadProgress from "./UploadProgress";
 
 export default function ImageUploadDialog() {
   const [keywords, setKeywords] = useState<string[]>([]);
   const [showAlert, setShowAlert] = useState<string | null>(null);
   const [focusedKeyWord, setFocusedKeyword] = useState("");
   const [images, setImages] = useState<File[]>([]);
+  const [uploadHash, setUploadHash] = useState<string | null>("");
 
   const [formData, setFormData] = useState({
     groupName: "",
@@ -76,7 +78,7 @@ export default function ImageUploadDialog() {
       body: uploadFormData,
       method: "POST",
     });
-    if (response.status == 204) {
+    if (response.status == 200) {
       setFormData({
         groupName: "",
         description: "",
@@ -87,6 +89,7 @@ export default function ImageUploadDialog() {
       setImages([]);
       setKeywords([]);
       setFocusedKeyword("");
+      setUploadHash(await response.text())
     }
   };
 
@@ -101,6 +104,7 @@ export default function ImageUploadDialog() {
 
   return (
     <>
+      <UploadProgress uploadHash={uploadHash} setUploadHash={setUploadHash}/>
       <h1 className="text-center text-4xl font-bold mb-4">Upload Images</h1>
       <div className="flex flex-col md:flex-row justify-between items-begin">
         <form

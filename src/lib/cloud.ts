@@ -20,15 +20,22 @@ const hashName = (name: string) => {
     return hash.digest("hex").substring(0, 16)
 }
 
-export const uploadFile = async (file: File): Promise<string> => {
+export const uploadFile = async (file: File, onProgress?: (progess: number) => void): Promise<string> => {
   const ref = bucket.file(hashName(file.name + Date.now().toString()));
   let stream = ref.createWriteStream({
     gzip: true,
     contentType: file.type,
   });
 
+  const onChunk = onProgress ? onProgress : () => {}
+
+  let loadedBytes: number = 0
   return new Promise((resolve, reject) => {
     createReadStream((file as any).path)
+      .on("data", chunk => {
+        loadedBytes += chunk.length;
+        onChunk(loadedBytes / file.size)
+      })
       .pipe(stream)
       .on("finish", async () => {
         resolve(ref.name);

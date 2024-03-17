@@ -154,7 +154,7 @@ export const deleteImageByFileName = async (name: string) => {
   await deleteFile(name);
 };
 
-export const uploadImages = async (upload: PictureGroupUpload) => {
+export const uploadImages = async (upload: PictureGroupUpload, onProgress?: (progess: number) => void) => {
   const groupData = {
     name: upload.name,
     description: upload.description,
@@ -162,6 +162,8 @@ export const uploadImages = async (upload: PictureGroupUpload) => {
     start: upload.start,
     location: upload.location,
   };
+
+  const onData = onProgress ? onProgress : () => {}
 
   let group: Group;
   try {
@@ -190,6 +192,11 @@ export const uploadImages = async (upload: PictureGroupUpload) => {
     );
   }
 
+  let totalSize = 0
+  let uploadedSize = 0
+  upload.images.forEach((image) => totalSize += image.size)
+  onData(0)
+
   uploads.concat(
     upload.images.map(async (image) => {
       const metaData = await sharp((image as any).path).metadata();
@@ -202,7 +209,16 @@ export const uploadImages = async (upload: PictureGroupUpload) => {
 
       const height = metaData.height!;
       const width = metaData.width!;
-      const gcStorageName = await uploadFile(image);
+      const impact = image.size / totalSize
+
+      let currentProgress = 0
+      const modifiedOnData = (progress: number): void => {
+        currentProgress = progress * impact
+        onData(uploadedSize + progress * impact)
+      }
+      const gcStorageName = await uploadFile(image, modifiedOnData);
+
+      uploadedSize += currentProgress
 
       await prisma.image.create({
         data: {
