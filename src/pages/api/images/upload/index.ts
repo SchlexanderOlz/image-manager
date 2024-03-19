@@ -18,7 +18,10 @@ export default async function POST(
   res: NextApiResponse
 ) {
   const session = await getServerSession(req, res, options) as any
-  if (!session || !session!.session?.user?.email) {
+  console.log(session)
+  const email = session!.token?.token.user?.email
+  console.log(session)
+  if (!session || !email) {
     res.status(401)
     res.end()
     return
@@ -42,7 +45,7 @@ export default async function POST(
   } as any;
   let hash = hashUpload(upload)
 
-  registerUpload(session!.session.user!.email!, hash).then(async (callback) => {
+  registerUpload(email, hash).then(async (callback) => {
     await uploadImages(upload, callback);
     console.log("All images uploaded")
   })

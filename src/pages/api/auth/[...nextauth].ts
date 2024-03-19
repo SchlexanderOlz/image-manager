@@ -70,6 +70,7 @@ export const options: AuthOptions = {
     session: session as any,
 
     async jwt(token: any, user?: User) {
+      console.log(token)
       if (user) {
         token.name = user.name;
         token.email = user.email;

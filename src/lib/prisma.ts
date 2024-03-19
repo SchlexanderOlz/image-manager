@@ -211,10 +211,13 @@ export const uploadImages = async (upload: PictureGroupUpload, onProgress?: (pro
       const width = metaData.width!;
       const impact = image.size / totalSize
 
+      let prevProgress = 0
       let currentProgress = 0
       const modifiedOnData = (progress: number): void => {
         currentProgress = progress * impact
-        onData(uploadedSize + progress * impact)
+        uploadedSize += currentProgress - prevProgress
+        onData(uploadedSize)
+        prevProgress = currentProgress 
       }
       const gcStorageName = await uploadFile(image, modifiedOnData);
 

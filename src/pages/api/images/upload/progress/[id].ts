@@ -23,6 +23,7 @@ export const registerUpload = (
 const ioHandler = (req: NextApiRequest, res: NextApiResponse) => {
   const id = req.query.id! as string;
   const upload = uploads.get(id);
+  const server = (res.socket as any).server
 
   console.log("Requesting Upload: " + upload)
   if (upload == undefined) {
@@ -30,9 +31,8 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponse) => {
     res.send("Upload does not exist")
     return
   }
-  console.log(res.socket.server)
-  if (!res.socket.server.io) {
-    const io = new Server(res.socket?.server, { path: `/api/images/upload/progress/${id}`});
+  if (!server.io) {
+    const io = new Server(server, { path: `/api/images/upload/progress/${id}`});
 
     console.log("Requestin Connection")
     io.on("connection", (socket) => {
@@ -46,11 +46,11 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponse) => {
           uploads.delete(id)
         }
       };
-      upload.callbackPromise(callback)
+      upload.callbackPromise!(callback)
       upload.callbackPromise = null
     });
 
-    res.socket.server.io = io;
+    server.io = io;
   }
   res.end();
 };

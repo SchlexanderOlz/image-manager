@@ -29,14 +29,14 @@ const UploadProgress = (args: {uploadHash: string | null, setUploadHash: (val: s
     <div className="flex flex-col items-center">
       <div
         className="radial-progress"
-        style={{ "--value": progress }}
+        style={{ "--value": progress } as any}
         role="progressbar"
       >
         {progress}%
       </div>
       <progress
         className="progress progress-secondary w-56 mt-5"
-        value={progress?.toString()}
+        value={progress?.toFixed(1)}
         max="100"
       ></progress>
     </div>
