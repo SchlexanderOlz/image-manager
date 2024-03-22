@@ -2,10 +2,10 @@ import parseForm from "@/lib/parseForm";
 import formidable from "formidable-serverless";
 import { NextApiRequest, NextApiResponse } from "next";
 import { PictureGroupUpload, uploadImages } from "@/lib/prisma";
-import { registerUpload } from "./progress/[id]";
+import { registerUpload, dummy } from "./progress/[id]";
 import { getServerSession } from "next-auth";
 import { hashUpload } from "@/lib/utils";
-import { options } from "@/pages/api/auth/[...nextauth]"
+import { options } from "@/pages/api/auth/[...nextauth]";
 
 export const config = {
   api: {
@@ -13,18 +13,15 @@ export const config = {
   },
 };
 
-export default async function POST(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const session = await getServerSession(req, res, options) as any
-  console.log(session)
-  const email = session!.token?.token.user?.email
-  console.log(session)
+dummy();
+
+export default async function POST(req: NextApiRequest, res: NextApiResponse) {
+  const session = (await getServerSession(req, res, options)) as any;
+  const email = session!.user?.email;
   if (!session || !email) {
-    res.status(401)
-    res.end()
-    return
+    res.status(401);
+    res.end();
+    return;
   }
   const form = formidable({
     multiples: true,
@@ -35,7 +32,11 @@ export default async function POST(
   const upload: PictureGroupUpload = {
     name: fields.groupName,
     description: fields.description,
-    keywords: Array.from(typeof(files.keywords) === "string" ? [fields.keywords] : fields.keywords ?? [] as any),
+    keywords: Array.from(
+      typeof files.keywords === "string"
+        ? [fields.keywords]
+        : fields.keywords ?? ([] as any)
+    ),
     images: Array.from(
       Array.isArray(files.images) ? files.images : [files.images]
     ),
@@ -43,13 +44,11 @@ export default async function POST(
     end: fields.end as any as Date,
     location: fields.location,
   } as any;
-  let hash = hashUpload(upload)
+  let hash = hashUpload(upload);
 
   registerUpload(email, hash).then(async (callback) => {
     await uploadImages(upload, callback);
-    console.log("All images uploaded")
-  })
-  setTimeout(() => {
-    res.send(hash)
-  }, 500);
+    console.log("All images uploaded");
+  });
+  res.send(hash);
 }
