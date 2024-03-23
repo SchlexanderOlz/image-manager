@@ -1,11 +1,11 @@
-import React, { useDebugValue, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import PhotoAlbum, { Photo } from "react-photo-album";
-import GaleryImage from "./GaleryImage";
+import GalleryImage from "./GalleryImage";
 import * as prisma from "@prisma/client";
 import { useRouter } from "next/navigation";
 
-const Galery = () => {
+const Gallery = () => {
   interface ImageDataResponse extends prisma.Image {
     group: {
       id: number;
@@ -167,7 +167,7 @@ const Galery = () => {
   return (
     <>
       <div className="text-center space-y-3">
-        <h1 className="text-5xl text-white font-bold">Galery</h1>
+        <h1 className="text-5xl text-white font-bold">Gallery</h1>
       </div>
       <div className="flex flex-col items-center">
         <div className="flex justify-center mt-5">
@@ -240,7 +240,7 @@ const Galery = () => {
             layout="masonry"
             onClick={({ index }) => openImageModal(index)}
             photos={photos}
-            renderPhoto={GaleryImage}
+            renderPhoto={GalleryImage}
             defaultContainerWidth={1200}
             sizes={{ size: "calc(100vw - 240px)" }}
           />
@@ -498,4 +498,4 @@ const Galery = () => {
     </>
   );
 };
-export default Galery;
+export default Gallery;

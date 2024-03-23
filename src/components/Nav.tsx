@@ -1,10 +1,10 @@
 "use client";
 
-import { ComponentContext, ComponentProvider } from "@/context/MainContent";
+import { ComponentContext } from "@/context/MainContent";
 import { useContext } from "react";
-import ImageUploadDialog from "./ImageUploadDialog";
+import ImageUploadDialog from "./upload/ImageUploadDialog";
 import Home from "./Home";
-import Galery from "./Galery";
+import Galery from "./gallery/Gallery";
 import { signOut } from "next-auth/react";
 
 export default function Nav() {

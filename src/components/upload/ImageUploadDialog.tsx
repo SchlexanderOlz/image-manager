@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import UploadProgress from "./UploadProgress";
+import React, { useState, useEffect, useCallback } from "react";
+import UploadProgress from "../UploadProgress";
+import PreviewImageBox from "./PreviewImageBox";
 
 export default function ImageUploadDialog() {
   const [keywords, setKeywords] = useState<string[]>([]);
@@ -15,17 +16,6 @@ export default function ImageUploadDialog() {
     endTime: "",
     location: "",
   });
-
-  const handleFormChange = (event: any) => {
-    const target = event.target;
-
-    const value = target.type === "checkbox" ? target.checked : target.value;
-    const name = target.name;
-
-    setFormData({
-      [name]: value,
-    } as any);
-  };
 
   const handleKeywordsChange = (
     event: React.KeyboardEvent<HTMLInputElement>
@@ -54,11 +44,25 @@ export default function ImageUploadDialog() {
     );
   };
 
-  const deleteFile = (index: number) => {
-    let copy = [...images];
-    copy.splice(index, 1);
-    setImages(copy);
+  const handleFormChange = (event: any) => {
+    const target = event.target;
+
+    const value = target.type === "checkbox" ? target.checked : target.value;
+    const name = target.name;
+
+    setFormData({
+      [name]: value,
+    } as any);
   };
+
+  const deleteFile = useCallback(
+    (index: number) => {
+      let copy = [...images];
+      copy.splice(index, 1);
+      setImages(copy);
+    },
+    [images]
+  );
 
   const deleteKeyword = (index: number) => {
     let copy = [...keywords];
@@ -89,7 +93,7 @@ export default function ImageUploadDialog() {
       setImages([]);
       setKeywords([]);
       setFocusedKeyword("");
-      setUploadHash(await response.text())
+      setUploadHash(await response.text());
     }
   };
 
@@ -104,7 +108,7 @@ export default function ImageUploadDialog() {
 
   return (
     <>
-      <UploadProgress uploadHash={uploadHash} setUploadHash={setUploadHash}/>
+      <UploadProgress uploadHash={uploadHash} setUploadHash={setUploadHash} />
       <h1 className="text-center text-4xl font-bold mb-4">Upload Images</h1>
       <div className="flex flex-col md:flex-row justify-between items-begin">
         <form
@@ -156,6 +160,7 @@ export default function ImageUploadDialog() {
             value={formData.description}
             onChange={handleFormChange}
           ></textarea>
+
           <input
             type="text"
             className="input input-bordered input-secondary h-12"
@@ -172,34 +177,7 @@ export default function ImageUploadDialog() {
               Images
             </div>
             <div className="p-4 rounded-md border overflow-auto h-48 w-80 align-baseline border-secondary mt-4">
-              <div className="mt-5">
-                {images.map((image, i) => (
-                  <div key={i} className="mb-4">
-                    <div className="badge badge-primary badge-outline h-16 w-full transform hover:scale-110 cursor-pointer">
-                      <svg
-                        onClick={() => deleteFile(i)}
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        className="inline-block w-6 h-6 stroke-current hover:opacity-80"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M6 18L18 6M6 6l12 12"
-                        ></path>
-                      </svg>
-                      <p className="p-4 font-mono truncate">{image.name}</p>
-                      <img
-                        className="min-w-20 max-w-32 h-4/5 object-cover mt-2 mb-2 mr-1 ml-1 rounded"
-                        src={URL.createObjectURL(image)}
-                        alt={image.name}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <PreviewImageBox images={images} onDelete={deleteFile} />
             </div>
           </div>
 
@@ -210,7 +188,10 @@ export default function ImageUploadDialog() {
             <div className="p-4 rounded-md border overflow-auto min-h-16 md:min-h-32 max-h-52 w-80 align-baseline border-secondary mt-4">
               <div className="mt-5">
                 {keywords.map((keyword, i) => (
-                  <div key={i} className="badge badge-primary badge-outline transform hover:scale-110 mr-1">
+                  <div
+                    key={i}
+                    className="badge badge-primary badge-outline transform hover:scale-110 mr-1"
+                  >
                     <svg
                       onClick={() => deleteKeyword(i)}
                       xmlns="http://www.w3.org/2000/svg"

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { RenderPhotoProps } from "react-photo-album";
 
-export default function GaleryImage({
+export default function GalleryImage({
   photo,
   imageProps: { alt, title, sizes, className, onClick },
   wrapperStyle,

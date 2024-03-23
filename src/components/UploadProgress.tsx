@@ -16,7 +16,6 @@ const UploadProgress = (args: {
 
       socket.on("progress", (data) => {
         setProgress(data as number);
-        if (data == 100) socket.close();
       });
 
       socket.on("finish", () => {
