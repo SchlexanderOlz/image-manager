@@ -24,6 +24,8 @@ export const registerUpload = (
   });
 };
 
+const e = 1E-2
+
 const ioHandler = (req: NextApiRequest, res: NextApiResponse) => {
   const id = req.query.id! as string;
   const upload = uploads.get(id);
@@ -47,7 +49,7 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponse) => {
       let callback = (progress: number) => {
         console.log("Socket emitted");
         socket.emit("progress", progress * 100);
-        if (progress == 100) {
+        if (Math.abs(100 - progress) <= e) {
           socket.emit("finish");
           io.close();
           server.io = undefined;

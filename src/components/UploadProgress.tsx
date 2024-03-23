@@ -8,6 +8,8 @@ const UploadProgress = (args: {
   const [progress, setProgress] = useState<number | null>(null);
   const { uploadHash, setUploadHash } = args;
 
+  const e = 1E-2
+
   useEffect(() => {
     if (!uploadHash) return;
     const url = `/api/images/upload/progress/${uploadHash}`;
@@ -16,6 +18,9 @@ const UploadProgress = (args: {
 
       socket.on("progress", (data) => {
         setProgress(data as number);
+        if (Math.abs(100 - data) <= e) {
+          socket.close()
+        }
       });
 
       socket.on("finish", () => {
@@ -29,16 +34,16 @@ const UploadProgress = (args: {
   }, [uploadHash]);
   if (!uploadHash) return;
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center justify-center w-screen h-screen bg-base-100 bg-opacity-40">
       <div
-        className="radial-progress"
-        style={{ "--value": progress } as any}
+        className="radial-progress text-secondary"
+        style={{ "--value": progress, "--size": "12rem", "--thickness": "1rem" } as any}
         role="progressbar"
       >
         {progress?.toFixed(1)}%
       </div>
       <progress
-        className="progress progress-secondary w-56 mt-5"
+        className="progress progress-secondary w-64 mt-5"
         value={progress?.toFixed(1)}
         max="100"
       ></progress>

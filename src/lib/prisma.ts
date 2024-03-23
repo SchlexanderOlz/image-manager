@@ -221,8 +221,6 @@ export const uploadImages = async (upload: PictureGroupUpload, onProgress?: (pro
       }
       const gcStorageName = await uploadFile(image, modifiedOnData);
 
-      uploadedSize += currentProgress
-
       await prisma.image.create({
         data: {
           name: image.name,

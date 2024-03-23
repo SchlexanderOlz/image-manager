@@ -4,7 +4,7 @@ import { ComponentContext } from "@/context/MainContent";
 import { useContext } from "react";
 import ImageUploadDialog from "./upload/ImageUploadDialog";
 import Home from "./Home";
-import Galery from "./gallery/Gallery";
+import Gallery from "./gallery/Gallery";
 import { signOut } from "next-auth/react";
 
 export default function Nav() {
@@ -40,7 +40,7 @@ export default function Nav() {
               </a>
             </li>
             <li>
-              <a onClick={() => setComponent(<Galery />)}>Galery</a>
+              <a onClick={() => setComponent(<Gallery />)}>Gallery</a>
             </li>
             <li>
               <a onClick={() => signOut()}>Logout</a>
@@ -57,7 +57,7 @@ export default function Nav() {
             </a>
           </li>
           <li>
-            <a onClick={() => setComponent(<Galery />)}>Galery</a>
+            <a onClick={() => setComponent(<Gallery />)}>Gallery</a>
           </li>
           <li>
             <a onClick={() => signOut()}>Logout</a>
