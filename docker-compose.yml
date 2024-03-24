@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  frontend:
+    container_name: image-manager 
+    env_file:
+      - .env
+    build: .
+    command: npm run dev
+    expose: 
+      - 3000
+    ports:
+      - 3000:3000
