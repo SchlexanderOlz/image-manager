@@ -2,57 +2,57 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+    provider      = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("POSTGRE_PRISMA_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
 model Group {
-  id          Int            @id @default(autoincrement())
-  name        String         @unique
-  description String?
-  start       DateTime?
-  end         DateTime?
-  location    String?
-  images      Image[]
-  keywords    GroupKeyword[]
+    id          Int            @id @default(autoincrement())
+    name        String         @unique
+    description String?
+    start       DateTime?
+    end         DateTime?
+    location    String?
+    images      Image[]
+    keywords    GroupKeyword[]
 }
 
 model Image {
-  id            Int            @id @default(autoincrement())
-  name          String
-  created       DateTime
-  description   String?
-  gcStorageName String         @unique
-  height        Int
-  width         Int
-  keywords      ImageKeyword[]
-  group_id      Int
-  group         Group          @relation(fields: [group_id], references: [id])
+    id            Int            @id @default(autoincrement())
+    name          String
+    created       DateTime
+    description   String?
+    gcStorageName String         @unique
+    height        Int
+    width         Int
+    keywords      ImageKeyword[]
+    group_id      Int
+    group         Group          @relation(fields: [group_id], references: [id])
 }
 
 model ImageKeyword {
-  id       Int    @id @default(autoincrement())
-  keyWord  String @unique
-  image_id Int
-  image    Image  @relation(fields: [image_id], references: [id])
+    id       Int    @id @default(autoincrement())
+    keyWord  String @unique
+    image_id Int
+    image    Image  @relation(fields: [image_id], references: [id])
 }
 
 model GroupKeyword {
-  id       Int    @id @default(autoincrement())
-  keyWord  String
-  group_id Int
-  group    Group  @relation(fields: [group_id], references: [id])
+    id       Int    @id @default(autoincrement())
+    keyWord  String
+    group_id Int
+    group    Group  @relation(fields: [group_id], references: [id])
 }
 
 model User {
-  id         String  @id @default(cuid())
-  name       String  @unique
-  email      String  @unique
-  password   String?
-  profilePic String?
+    id         String  @id @default(cuid())
+    name       String  @unique
+    email      String  @unique
+    password   String?
+    profilePic String?
 }

@@ -1,13 +1,28 @@
-version: '3.8'
+version: "3.8"
 
 services:
   frontend:
-    container_name: image-manager 
+    container_name: image-manager
     env_file:
       - .env
     build: .
     command: npm run dev
-    expose: 
+    expose:
       - 3000
     ports:
       - 3000:3000
+
+  db:
+    container_name: image-manager-db
+    image: postgres:15.1-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:

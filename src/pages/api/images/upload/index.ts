@@ -1,7 +1,7 @@
 import parseForm from "@/lib/parseForm";
 import formidable from "formidable-serverless";
 import { NextApiRequest, NextApiResponse } from "next";
-import { PictureGroupUpload, uploadImages } from "@/lib/prisma";
+import { PictureGroupUpload, db } from "@/lib/prisma";
 import { registerUpload, dummy } from "./progress/[id]";
 import { getServerSession } from "next-auth";
 import { hashUpload } from "@/lib/utils";
@@ -35,10 +35,10 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
     keywords: Array.from(
       typeof files.keywords === "string"
         ? [fields.keywords]
-        : fields.keywords ?? ([] as any)
+        : fields.keywords ?? ([] as any),
     ),
     images: Array.from(
-      Array.isArray(files.images) ? files.images : [files.images]
+      Array.isArray(files.images) ? files.images : [files.images],
     ),
     start: fields.start as any as Date,
     end: fields.end as any as Date,
@@ -47,7 +47,7 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
   let hash = hashUpload(upload);
 
   registerUpload(email, hash).then(async (callback) => {
-    await uploadImages(upload, callback);
+    await db.uploadImages(upload, callback);
     console.log("All images uploaded");
   });
   res.send(hash);

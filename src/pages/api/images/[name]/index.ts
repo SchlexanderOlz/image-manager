@@ -1,10 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createBucketReadStream } from "@/lib/cloud";
-import {
-  updateImageByFileName,
-  deleteImageByFileName,
-  switchGroup,
-} from "@/lib/prisma";
+import { db } from "@/lib/prisma";
 
 export const config = {
   api: {
@@ -18,15 +13,15 @@ export default async function GET(req: NextApiRequest, res: NextApiResponse) {
   const name = req.query.name! as string;
 
   res.status(200);
-  (await createBucketReadStream(name)).pipe(res);
+  (await db.adapter.createReadStream(name)).pipe(res);
 }
 
 export async function PATCH(req: NextApiRequest, res: NextApiResponse) {
   const name = req.query.name! as string;
   let change = JSON.parse(req.body);
-  if (change.groupname) switchGroup(name, change.groupname);
+  if (change.groupname) db.switchGroup(name, change.groupname);
   delete change["groupname"];
-  const instance = await updateImageByFileName(name, change);
+  const instance = await db.updateImageByFileName(name, change);
 
   res.json(instance);
   res.status(200).end();
@@ -34,7 +29,7 @@ export async function PATCH(req: NextApiRequest, res: NextApiResponse) {
 
 export async function DELETE(req: NextApiRequest, res: NextApiResponse) {
   const name = req.query.name! as string;
-  await deleteImageByFileName(name);
+  await db.deleteImageByFileName(name);
 
   res.status(204).end();
 }

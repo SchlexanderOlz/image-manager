@@ -61,7 +61,7 @@ const Gallery = () => {
   const displaySearchImages = async (
     search?: string,
     begin?: Date,
-    end?: Date
+    end?: Date,
   ) => {
     if (timeoutId != null) {
       clearTimeout(timeoutId);
@@ -284,7 +284,7 @@ const Gallery = () => {
                               setTransitionDirection("left");
                               slideTo(
                                 (focusedIndex - 1 + photos.length) %
-                                  photos.length
+                                  photos.length,
                               );
                             }}
                             className="btn btn-circle btn-ghost sm:text-2xl md:text-md transform transition-transform duration-200 hover:scale-110"
@@ -417,7 +417,7 @@ const Gallery = () => {
                         )}
                       </span>
                     </p>
- 
+
                     <p className="mb-2">
                       Group Name:{" "}
                       <span
@@ -464,13 +464,21 @@ const Gallery = () => {
                           year: "numeric",
                           month: "long",
                           day: "2-digit",
-                        }).format(new Date(imageData?.group.start || 0 as any).getTime())}
+                        }).format(
+                          new Date(
+                            imageData?.group.start || (0 as any),
+                          ).getTime(),
+                        )}
                         -
                         {new Intl.DateTimeFormat("en-GB", {
                           year: "numeric",
                           month: "long",
                           day: "2-digit",
-                        }).format(new Date(imageData?.group.end || 0 as any).getTime())}
+                        }).format(
+                          new Date(
+                            imageData?.group.end || (0 as any),
+                          ).getTime(),
+                        )}
                       </span>
                     </p>
                     <p className="mb-2">
