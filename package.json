@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -15,11 +15,13 @@
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@types/busboy": "^1.5.3",
+    "@types/cuid": "^2.0.1",
     "@types/memory-fs": "^0.3.7",
     "busboy": "^1.6.0",
     "cloudinary": "^2.0.1",
     "crypt-js": "^1.0.4",
     "crypto-js": "^4.2.0",
+    "cuid": "^3.0.0",
     "email-validator": "^2.0.4",
     "exif-parser": "^0.1.12",
     "formidable": "^3.5.1",

@@ -1,7 +1,8 @@
 import { Storage } from "@google-cloud/storage";
-import { createReadStream } from "fs";
-import { hashName } from "./adapter";
+import { ImageUpload, UploadResult, parseResult } from "./adapter";
 import Adapter from "./adapter";
+import sharp from "sharp";
+import cuid from "cuid";
 
 const projectId = process.env.BUCKET_ID!;
 
@@ -17,42 +18,48 @@ const bucket = storage.bucket(process.env.BUCKET_NAME!);
 
 class CloudAdapter implements Adapter {
   uploadFile = async (
-    file: File,
+    file: ImageUpload,
     onProgress?: (progess: number) => void,
-  ): Promise<string> => {
-    const ref = bucket.file(hashName(file.name + Date.now().toString()));
+  ): Promise<UploadResult> => {
+    const ref = bucket.file(cuid());
     let stream = ref.createWriteStream({
       gzip: true,
-      contentType: file.type,
+      contentType: file.mimeType,
     });
 
     const onChunk = onProgress ? onProgress : () => {};
+    let metaParser = sharp();
 
-    let loadedBytes: number = 0;
     return new Promise((resolve, reject) => {
-      createReadStream((file as any).path)
+      file.data
         .on("data", (chunk) => {
-          loadedBytes += chunk.length;
-          onChunk(loadedBytes / file.size);
+          metaParser.write(chunk);
+          onChunk(chunk.length);
         })
-        .pipe(stream)
         .on("finish", async () => {
-          resolve(ref.name);
-        })
-        .on("unhandledRejection", (err) => {
-          console.error(err.message);
-          reject(err);
+          const parsed = await parseResult(metaParser);
+          const result: UploadResult = {
+            name: file.name,
+            gcStorageName: ref.name,
+            created: parsed.created,
+            height: parsed.height || 0,
+            width: parsed.width || 0,
+          };
+          resolve(result);
         })
         .on("error", (err) => {
           console.log(err.message);
           reject(err);
-        });
+        })
+        .on("end", () => {
+          console.log("Stream ended (might be due to error)");
+        })
+        .pipe(stream);
     });
   };
 
-  uploadFiles = async (files: File[]): Promise<string[]> => {
-    console.log(bucket.baseUrl);
-    let urls: string[] = [];
+  uploadFiles = async (files: ImageUpload[]): Promise<UploadResult[]> => {
+    let urls: UploadResult[] = [];
     files.forEach(async (file) => {
       urls.push(await this.uploadFile(file));
     });

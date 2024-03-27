@@ -22,7 +22,7 @@ const PreviewImageBox = React.memo(({ images, onDelete }: any) => (
             ></path>
           </svg>
           <p className="p-4 font-mono truncate">{image.name}</p>
-          <Image
+          <img
             className="min-w-20 max-w-32 h-4/5 object-cover mt-2 mb-2 mr-1 ml-1 rounded"
             src={URL.createObjectURL(image)}
             alt={image.name}

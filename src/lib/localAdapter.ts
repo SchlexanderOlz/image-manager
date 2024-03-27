@@ -1,6 +1,8 @@
 import { Readable } from "stream";
-import Adapter, { hashName } from "./adapter";
-import fs, { createReadStream } from "fs";
+import Adapter, { ImageUpload, UploadResult, parseResult } from "./adapter";
+import fs from "fs";
+import sharp from "sharp";
+import cuid from "cuid";
 
 const dataDir: string = process.env.DATA_DIR!;
 class LocalAdapter implements Adapter {
@@ -10,33 +12,47 @@ class LocalAdapter implements Adapter {
     else this.path = dataDir;
   }
   uploadFile = async (
-    file: File,
+    file: ImageUpload,
     onProgress?: ((progess: number) => void) | undefined,
-  ): Promise<string> => {
-    const name = hashName(file.name + Date.now().toString());
+  ): Promise<UploadResult> => {
+    const name = cuid();
     let stream = fs.createWriteStream(this.path + name);
     const onChunk = onProgress ? onProgress : () => {};
 
-    let loadedBytes: number = 0;
+    let metaParser = sharp();
+
     return new Promise((resolve, reject) => {
-      createReadStream((file as any).path)
+      file.data
         .on("data", (chunk) => {
-          loadedBytes += chunk.length;
-          onChunk(loadedBytes / file.size);
+          metaParser.write(chunk);
+          onChunk(chunk.length);
         })
         .pipe(stream)
         .on("finish", async () => {
-          resolve(name);
+          console.log("Finished upload");
+          metaParser.end();
+          const parsed = await parseResult(metaParser);
+          const result: UploadResult = {
+            name: file.name,
+            gcStorageName: name,
+            created: parsed.created,
+            height: parsed.height || 0,
+            width: parsed.width || 0,
+          };
+          resolve(result);
         })
         .on("error", (err) => {
           console.log(err.message);
           reject(err);
+        })
+        .on("end", () => {
+          console.log("Stream ended (might be due to error)");
         });
     });
   };
 
-  uploadFiles = async (files: File[]): Promise<string[]> => {
-    let urls: string[] = [];
+  uploadFiles = async (files: ImageUpload[]): Promise<UploadResult[]> => {
+    let urls: UploadResult[] = [];
     files.forEach(async (file) => {
       urls.push(await this.uploadFile(file));
     });

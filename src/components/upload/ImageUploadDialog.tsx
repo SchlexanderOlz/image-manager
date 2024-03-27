@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import UploadProgress from "../UploadProgress";
 import PreviewImageBox from "./PreviewImageBox";
+import cuid from "cuid";
+import { io, Socket } from "socket.io-client";
 
 export default function ImageUploadDialog() {
   const [keywords, setKeywords] = useState<string[]>([]);
   const [showAlert, setShowAlert] = useState<string | null>(null);
   const [focusedKeyWord, setFocusedKeyword] = useState("");
   const [images, setImages] = useState<File[]>([]);
-  const [uploadHash, setUploadHash] = useState<string | null>("");
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   const [formData, setFormData] = useState({
     groupName: "",
@@ -18,7 +20,7 @@ export default function ImageUploadDialog() {
   });
 
   const handleKeywordsChange = (
-    event: React.KeyboardEvent<HTMLInputElement>
+    event: React.KeyboardEvent<HTMLInputElement>,
   ) => {
     if (event.key === "Enter") {
       if (focusedKeyWord.trim().length == 0) {
@@ -39,8 +41,8 @@ export default function ImageUploadDialog() {
   const addFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
     setImages(
       Array.from(
-        new Set([...Array.from(event.target.files as any), ...images])
-      ) as File[]
+        new Set([...Array.from(event.target.files as any), ...images]),
+      ) as File[],
     );
   };
 
@@ -61,7 +63,7 @@ export default function ImageUploadDialog() {
       copy.splice(index, 1);
       setImages(copy);
     },
-    [images]
+    [images],
   );
 
   const deleteKeyword = (index: number) => {
@@ -70,14 +72,39 @@ export default function ImageUploadDialog() {
     setKeywords(copy);
   };
 
+  const createProgressSocket = async (cuid: string): Promise<Socket> => {
+    const url = `/api/images/upload/progress/${cuid}`;
+    return new Promise((res, rej) => {
+      fetch(url).finally(() => {
+        let socket = io({ path: url, forceNew: true });
+        socket.on("connect", () => {
+          res(socket);
+        });
+        socket.on("error", (error) => rej(error));
+      });
+    });
+  };
+
   const upload = async () => {
     let uploadFormData = new FormData();
-    images.forEach((image) => uploadFormData.append("images", image));
-    uploadFormData.append("groupName", formData.groupName);
-    uploadFormData.append("description", formData.description);
+    let id = cuid();
+    setSocket(await createProgressSocket(id));
+
+    uploadFormData.append("cuid", id);
+    uploadFormData.append("name", formData.groupName);
+    if (formData.description)
+      uploadFormData.append("description", formData.description);
     if (formData.startTime) uploadFormData.append("start", formData.startTime);
     if (formData.endTime) uploadFormData.append("end", formData.endTime);
     keywords.forEach((keyword) => uploadFormData.append("keywords", keyword));
+
+    let totalSize = 0;
+    images.forEach((image) => {
+      uploadFormData.append("images", image);
+      totalSize += image.size;
+    });
+    uploadFormData.append("totalSize", totalSize.toString());
+
     const response = await fetch("/api/images/upload", {
       body: uploadFormData,
       method: "POST",
@@ -93,12 +120,9 @@ export default function ImageUploadDialog() {
       setImages([]);
       setKeywords([]);
       setFocusedKeyword("");
-      setUploadHash(await response.text());
+      socket?.disconnect();
+      setSocket(null);
     }
-  };
-
-  const fadeUploadProgress = (uploadHash: string) => {
-    setTimeout(() => setUploadHash(uploadHash), 1000);
   };
 
   useEffect(() => {
@@ -114,14 +138,14 @@ export default function ImageUploadDialog() {
     <>
       <div
         className={`fixed inset-0 z-10 transition-opacity duration-500 pointer-events-none ${
-          uploadHash ? `opacity-100` : `opacity-0`
+          socket ? `opacity-100` : `opacity-0`
         }`}
       >
-        <UploadProgress uploadHash={uploadHash} setUploadHash={setUploadHash} />
+        <UploadProgress socket={socket} setSocket={setSocket} />
       </div>
       <div
         className={`transition-opacity duration-500 ${
-          uploadHash
+          socket
             ? `pointer-events-none opacity-40 bg-opacity-40`
             : `opacity-100`
         }`}

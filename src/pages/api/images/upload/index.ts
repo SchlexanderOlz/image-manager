@@ -1,19 +1,16 @@
-import parseForm from "@/lib/parseForm";
-import formidable from "formidable-serverless";
 import { NextApiRequest, NextApiResponse } from "next";
-import { PictureGroupUpload, db } from "@/lib/prisma";
-import { registerUpload, dummy } from "./progress/[id]";
+import { PictureGroupUpload, adapter, db } from "@/lib/prisma";
+import { getUploadFunction, registerUpload } from "./progress/[id]";
 import { getServerSession } from "next-auth";
-import { hashUpload } from "@/lib/utils";
 import { options } from "@/pages/api/auth/[...nextauth]";
+import busboy from "busboy";
+import { ImageUpload, UploadResult } from "@/lib/adapter";
 
 export const config = {
   api: {
     bodyParser: false,
   },
 };
-
-dummy();
 
 export default async function POST(req: NextApiRequest, res: NextApiResponse) {
   const session = (await getServerSession(req, res, options)) as any;
@@ -23,32 +20,54 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
     res.end();
     return;
   }
-  const form = formidable({
-    multiples: true,
+
+  let uploadedFiles: Promise<UploadResult>[] = [];
+  let upload = {};
+
+  let resolveCuid = undefined;
+  const cuid: Promise<string> = new Promise((res, _) => (resolveCuid = res));
+  const bb = busboy({ headers: req.headers });
+  let totalSize: number = Number.parseInt(req.headers["content-length"]!);
+  let uploadedSize: number = 0;
+  bb.on("file", async (name, stream, info) => {
+    console.log("Called into file");
+    let uploadCallback = getUploadFunction(await cuid, email);
+    let wrapper = async (progress: number) => {
+      uploadedSize += progress;
+      (await uploadCallback)(uploadedSize / totalSize);
+    };
+    const { mimeType } = info;
+    const uploadData: ImageUpload = {
+      data: stream,
+      name,
+      mimeType,
+    };
+    uploadedFiles.push(adapter.uploadFile(uploadData, wrapper));
   });
-
-  const { fields, files } = await parseForm(form, req);
-
-  const upload: PictureGroupUpload = {
-    name: fields.groupName,
-    description: fields.description,
-    keywords: Array.from(
-      typeof files.keywords === "string"
-        ? [fields.keywords]
-        : fields.keywords ?? ([] as any),
-    ),
-    images: Array.from(
-      Array.isArray(files.images) ? files.images : [files.images],
-    ),
-    start: fields.start as any as Date,
-    end: fields.end as any as Date,
-    location: fields.location,
-  } as any;
-  let hash = hashUpload(upload);
-
-  registerUpload(email, hash).then(async (callback) => {
-    await db.uploadImages(upload, callback);
+  bb.on("field", (name, value, _) => {
+    console.log("Loaded: " + name + "with value: " + value);
+    if (name == "cuid") {
+      resolveCuid!(value);
+      return;
+    }
+    if (name == "totalSize") {
+      totalSize = Number.parseInt(value);
+      return;
+    }
+    if (name == "start" || name == "end") {
+      upload = { ...upload, [name]: new Date(value) };
+      return;
+    }
+    upload = { ...upload, [name]: value };
+  });
+  bb.on("finish", async () => {
+    console.log("Finish");
+    const images = await Promise.all(uploadedFiles);
+    upload = { ...upload, images: images };
+    console.log(upload);
+    await db.uploadImages(upload as PictureGroupUpload);
     console.log("All images uploaded");
+    res.end();
   });
-  res.send(hash);
+  await req.pipe(bb);
 }

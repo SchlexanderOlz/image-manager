@@ -1,12 +1,8 @@
 "use server";
 
-import { Group, PrismaClient } from "@prisma/client";
+import { Group, PrismaClient, Image } from "@prisma/client";
 import LocalAdapter from "./localAdapter";
-import Adapter from "./adapter";
-
-import * as exifParser from "exif-parser";
-import * as fs from "fs";
-import sharp from "sharp";
+import Adapter, { UploadResult } from "./adapter";
 
 const prisma = new PrismaClient();
 
@@ -16,7 +12,7 @@ export interface PictureGroupUpload {
   start: Date;
   end: Date;
   keywords: string[];
-  images: File[];
+  images: UploadResult[];
   location: string;
 }
 
@@ -163,10 +159,7 @@ export class DBInteraction {
     await this.adapter.deleteFile(name);
   };
 
-  uploadImages = async (
-    upload: PictureGroupUpload,
-    onProgress?: (progess: number) => void,
-  ) => {
+  uploadImages = async (upload: PictureGroupUpload) => {
     const groupData = {
       name: upload.name,
       description: upload.description,
@@ -175,22 +168,33 @@ export class DBInteraction {
       location: upload.location,
     };
 
-    const onData = onProgress ? onProgress : () => {};
-
     let group: Group;
+
+    let uploads: any = [];
     try {
       group = await prisma.group.create({
-        data: groupData,
+        data: { ...groupData, images: { create: upload.images } },
       });
-    } catch (Error) {
+    } catch (e) {
+      console.log("I crashed because I am: " + e);
       group = await prisma.group.findUniqueOrThrow({
         where: {
           name: groupData.name,
         },
       });
+      uploads.concat(
+        upload.images.forEach(
+          async (image) =>
+            await prisma.image.create({
+              data: {
+                ...image,
+                group_id: group.id,
+              },
+            }),
+        ),
+      );
     }
 
-    let uploads: any = [];
     if (upload.keywords) {
       uploads.concat(
         upload.keywords.map(async (keyword) => {
@@ -203,54 +207,6 @@ export class DBInteraction {
         }),
       );
     }
-
-    let totalSize = 0;
-    let uploadedSize = 0;
-    upload.images.forEach((image) => (totalSize += image.size));
-    onData(0);
-
-    uploads.concat(
-      upload.images.map(async (image) => {
-        const metaData = await sharp((image as any).path).metadata();
-        if (image.type == "image/jpeg") {
-          const buffer = fs.readFileSync((image as any).path);
-          const parser = exifParser.create(buffer);
-          var result = parser.parse();
-          var createTime = result.tags.CreateDate;
-        }
-
-        const height = metaData.height!;
-        const width = metaData.width!;
-        const impact = image.size / totalSize;
-
-        let prevProgress = 0;
-        let currentProgress = 0;
-        const modifiedOnData = (progress: number): void => {
-          currentProgress = progress * impact;
-          uploadedSize += currentProgress - prevProgress;
-          onData(uploadedSize);
-          prevProgress = currentProgress;
-        };
-        const gcStorageName = await this.adapter.uploadFile(
-          image,
-          modifiedOnData,
-        );
-
-        await prisma.image.create({
-          data: {
-            name: image.name,
-            created: createTime
-              ? new Date(createTime).toISOString()
-              : new Date(Date.now()).toISOString(),
-            group_id: group.id,
-            gcStorageName,
-            height,
-            width,
-          },
-        });
-      }),
-    );
-
     await Promise.all(uploads);
   };
 }

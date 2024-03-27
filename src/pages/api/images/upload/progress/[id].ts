@@ -1,66 +1,88 @@
+import { options } from "@/pages/api/auth/[...nextauth]";
 import { NextApiRequest, NextApiResponse } from "next";
+import { getServerSession } from "next-auth";
 import { Server } from "socket.io";
 
-let uploads: Map<
-  string,
-  {
-    callbackPromise:
-      | ((progressCallback: (progress: number) => void) => void)
-      | null;
-    userEmail: string;
-    io?: Server;
-  }
-> = new Map();
-
-export const dummy = () => {};
+interface UploadMapEntry {
+  progressCallback?: (progress: number) => void;
+  depositedCallbackPromise?: (value: (progress: number) => void) => void;
+  userEmail: string;
+  io?: Server;
+}
+let uploads: Map<string, UploadMapEntry> = new Map();
 
 export const registerUpload = (
   userEmail: string,
-  uploadHash: string
-): Promise<(progress: number) => void> => {
-  return new Promise((resolve, _) => {
-    uploads.set(uploadHash, { callbackPromise: resolve, userEmail });
-    console.log("Succesfully registered: " + uploadHash);
-  });
-};
-
-const e = 1E-2
-
-const ioHandler = (req: NextApiRequest, res: NextApiResponse) => {
-  const id = req.query.id! as string;
-  const upload = uploads.get(id);
-  const server = (res.socket as any).server;
-
+  cuid: string,
+  progressCallback: (progress: number) => void,
+): void => {
+  let upload = uploads.get(cuid);
   if (upload == undefined) {
-    res.status(404);
-    res.send("Upload does not exist");
+    uploads.set(cuid, { progressCallback, userEmail });
     return;
   }
-  if (!upload.io) {
+  if (userEmail != upload.userEmail) return {} as any; // TODO: Make this an error or something here
+  if (upload.depositedCallbackPromise) {
+    upload.depositedCallbackPromise(progressCallback);
+    upload.depositedCallbackPromise = undefined;
+  }
+  upload.progressCallback = progressCallback;
+};
+
+export const getUploadFunction = async (
+  cuid: string,
+  userEmail: string,
+): Promise<(progress: number) => void> => {
+  let upload = uploads.get(cuid);
+  if (upload == undefined || !upload.progressCallback) {
+    let wsSetup = new Promise((res, _) => {
+      uploads.set(cuid, { userEmail, depositedCallbackPromise: res });
+    });
+    return (await wsSetup) as any;
+  }
+  return upload.progressCallback;
+};
+
+const e = 0.2;
+
+const ioHandler = async (req: NextApiRequest, res: NextApiResponse) => {
+  const id = req.query.id! as string;
+  const session = (await getServerSession(req, res, options)) as any;
+  const email = session!.user?.email;
+  const server = (res.socket as any).server;
+  let upload = uploads.get(id);
+
+  if (upload == undefined || upload.depositedCallbackPromise) {
     const io = new Server(server, {
       path: `/api/images/upload/progress/${id}`,
     });
-    upload.io = io;
     server.io = io;
 
-    console.log("Requestin Connection");
     io.on("connection", (socket) => {
       console.log("Client connected");
-      let callback = (progress: number) => {
-        console.log("Socket emitted");
-        socket.emit("progress", progress * 100);
-        if (Math.abs(100 - progress) <= e) {
-          socket.emit("finish");
+      const cleanup = () => {
+        console.log("Finished transmission");
+        socket.emit("finish");
+        setTimeout(() => {
           io.close();
-          server.io = undefined;
           uploads.delete(id);
+          server.io = undefined;
+        }, 2000);
+      };
+      socket.on("disconnect", cleanup);
+      const callback = (progress: number) => {
+        socket.emit("progress", progress * 100); // NOTE: This should probably rather be a broadcast
+        if (Math.abs(100 - progress * 100) <= e) {
+          cleanup();
         }
       };
-      upload.callbackPromise!(callback);
-      upload.callbackPromise = null;
+      registerUpload(email, id, callback);
+      upload = uploads.get(id)!;
+      upload.io = io;
     });
+  } else {
+    server.io = upload.io;
   }
-  server.io = upload.io;
   res.end();
 };
 
