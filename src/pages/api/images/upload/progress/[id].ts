@@ -64,7 +64,6 @@ const ioHandler = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log("Finished transmission");
         socket.emit("finish");
         setTimeout(() => {
-          io.close();
           uploads.delete(id);
           server.io = undefined;
         }, 2000);
