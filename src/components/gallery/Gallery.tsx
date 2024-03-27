@@ -29,6 +29,7 @@ const Gallery = () => {
     search: string | undefined;
     begin: Date | undefined;
     end: Date | undefined;
+    user: boolean | undefined;
   }>();
   const [transitionDirection, setTransitionDirection] = useState<
     "left" | "right" | null
@@ -62,6 +63,7 @@ const Gallery = () => {
     search?: string,
     begin?: Date,
     end?: Date,
+    user?: boolean,
   ) => {
     if (timeoutId != null) {
       clearTimeout(timeoutId);
@@ -77,9 +79,12 @@ const Gallery = () => {
       const encodedSearch = search
         ? `search=${encodeURIComponent(search)}`
         : undefined;
+      const encodedUser = user ? `user=${encodeURIComponent(user)}` : undefined;
 
       let url = "/api/images/urls?";
-      const params = [encodedSearch, beginISO, endISO].filter(Boolean);
+      const params = [encodedSearch, beginISO, endISO, encodedUser].filter(
+        Boolean,
+      );
       url += params.join("&");
 
       const data = await fetch(url).then((res) => res.json());
@@ -91,7 +96,12 @@ const Gallery = () => {
   };
 
   useEffect(() => {
-    displaySearchImages(filter?.search, filter?.begin, filter?.end);
+    displaySearchImages(
+      filter?.search,
+      filter?.begin,
+      filter?.end,
+      filter?.user,
+    );
   }, [filter]);
 
   useEffect(() => {
@@ -230,6 +240,23 @@ const Gallery = () => {
                     : undefined,
                 })
               }
+            />
+          </label>
+        </div>
+        <div className="flex form-control mt-5">
+          <label className="label cursor-pointer">
+            <span className="label-text mr-5">My Pictures</span>
+            <input
+              checked={filter?.user ? true : false}
+              type="checkbox"
+              name="user"
+              className="checkbox"
+              onChange={(event) => {
+                console.log(event.target.value);
+                setFilterValue({
+                  user: event.target.value ? true : false,
+                });
+              }}
             />
           </label>
         </div>

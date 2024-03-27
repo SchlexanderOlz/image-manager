@@ -31,7 +31,7 @@ export const options: AuthOptions = {
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
         const user = await res.json();
 
@@ -68,6 +68,7 @@ export const options: AuthOptions = {
 
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
         token.name = user.name;
         token.email = user.email;
       }

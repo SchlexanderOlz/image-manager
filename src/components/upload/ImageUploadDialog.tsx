@@ -141,7 +141,7 @@ export default function ImageUploadDialog() {
           socket ? `opacity-100` : `opacity-0`
         }`}
       >
-        <UploadProgress socket={socket} setSocket={setSocket} />
+        <UploadProgress socket={socket} />
       </div>
       <div
         className={`transition-opacity duration-500 ${

@@ -31,6 +31,8 @@ model Image {
     height        Int
     width         Int
     keywords      ImageKeyword[]
+    user_id       String
+    user          User           @relation(fields: [user_id], references: [id])
     group_id      Int
     group         Group          @relation(fields: [group_id], references: [id])
 }
@@ -55,4 +57,5 @@ model User {
     email      String  @unique
     password   String?
     profilePic String?
+    Image      Image[]
 }

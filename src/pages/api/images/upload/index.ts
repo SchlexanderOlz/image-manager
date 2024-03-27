@@ -15,7 +15,7 @@ export const config = {
 export default async function POST(req: NextApiRequest, res: NextApiResponse) {
   const session = (await getServerSession(req, res, options)) as any;
   const email = session!.user?.email;
-  if (!session || !email) {
+  if (!session || !email || !session.user.id) {
     res.status(401);
     res.end();
     return;
@@ -30,7 +30,6 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
   let totalSize: number = Number.parseInt(req.headers["content-length"]!);
   let uploadedSize: number = 0;
   bb.on("file", async (name, stream, info) => {
-    console.log("Called into file");
     let uploadCallback = getUploadFunction(await cuid, email);
     let wrapper = async (progress: number) => {
       uploadedSize += progress;
@@ -45,7 +44,6 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
     uploadedFiles.push(adapter.uploadFile(uploadData, wrapper));
   });
   bb.on("field", (name, value, _) => {
-    console.log("Loaded: " + name + "with value: " + value);
     if (name == "cuid") {
       resolveCuid!(value);
       return;
@@ -64,6 +62,8 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
     console.log("Finish");
     const images = await Promise.all(uploadedFiles);
     upload = { ...upload, images: images };
+
+    if ((upload as any).user == "true") upload = { ...upload, email: email };
     console.log(upload);
     await db.uploadImages(upload as PictureGroupUpload);
     console.log("All images uploaded");

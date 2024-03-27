@@ -1,6 +1,6 @@
 "use server";
 
-import { Group, PrismaClient, Image } from "@prisma/client";
+import { Group, PrismaClient, Image, User } from "@prisma/client";
 import LocalAdapter from "./localAdapter";
 import Adapter, { UploadResult } from "./adapter";
 
@@ -14,12 +14,14 @@ export interface PictureGroupUpload {
   keywords: string[];
   images: UploadResult[];
   location: string;
+  email: string;
 }
 
 export interface ImageFilterQuery {
   search: string | undefined;
   begin: Date | undefined;
   end: Date | undefined;
+  email: string | undefined;
 }
 
 export class DBInteraction {
@@ -50,13 +52,28 @@ export class DBInteraction {
       );
     }
 
-    if (filter?.begin || filter?.end) {
+    if (filter?.begin || filter?.end || filter?.email) {
       andConditions.push({
         OR: [
-          { created: { gte: filter?.begin, lte: filter?.end } },
-          {
-            group: { start: { gte: filter?.begin }, end: { lte: filter?.end } },
-          },
+          filter.email
+            ? {
+                user: {
+                  email: filter.email,
+                },
+              }
+            : {},
+          filter.begin
+            ? { created: { gte: filter?.begin, lte: filter?.end } }
+            : {},
+
+          filter.begin
+            ? {
+                group: {
+                  start: { gte: filter?.begin },
+                  end: { lte: filter?.end },
+                },
+              }
+            : {},
         ],
       });
     }
@@ -170,30 +187,40 @@ export class DBInteraction {
 
     let group: Group;
 
+    let user_id = (
+      await prisma.user.findUniqueOrThrow({
+        where: {
+          email: upload.email,
+        },
+      })
+    ).id;
     let uploads: any = [];
     try {
       group = await prisma.group.create({
-        data: { ...groupData, images: { create: upload.images } },
+        data: {
+          ...groupData,
+        },
       });
     } catch (e) {
-      console.log("I crashed because I am: " + e);
       group = await prisma.group.findUniqueOrThrow({
         where: {
           name: groupData.name,
         },
       });
-      uploads.concat(
-        upload.images.forEach(
-          async (image) =>
-            await prisma.image.create({
-              data: {
-                ...image,
-                group_id: group.id,
-              },
-            }),
-        ),
-      );
     }
+
+    uploads.concat(
+      upload.images.forEach(
+        async (image) =>
+          await prisma.image.create({
+            data: {
+              ...image,
+              group_id: group.id,
+              user_id,
+            },
+          }),
+      ),
+    );
 
     if (upload.keywords) {
       uploads.concat(

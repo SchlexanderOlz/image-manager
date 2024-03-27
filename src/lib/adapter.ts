@@ -2,7 +2,6 @@ import internal from "stream";
 import { createHash } from "crypto";
 import { Sharp } from "sharp";
 import exifParser from "exif-parser";
-import { WriteStream } from "fs";
 
 export const hashName = (name: string) => {
   const hash = createHash("sha1");
