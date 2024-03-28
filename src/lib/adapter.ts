@@ -43,9 +43,9 @@ export const parseResult = async (
   const meta = await metaParser.metadata();
   let createTime = new Date();
   if (meta.exif) {
-    const parser = exifParser.create(meta.exif);
+    const parser = exifParser.create(await metaParser.toBuffer());
     const result = parser.parse();
-    if (result.tags.CreateData) {
+    if (result.tags.CreateDate) {
       createTime = result.tags.CreateDate;
     } else if (result.tags.DateTimeOriginal) {
       createTime = result.tags.DateTimeOriginal;

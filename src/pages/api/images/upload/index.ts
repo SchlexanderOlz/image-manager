@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { PictureGroupUpload, adapter, db } from "@/lib/prisma";
+import db, { PictureGroupUpload, adapter } from "@/lib/prisma";
 import { getUploadFunction } from "./progress/[id]";
 import { getServerSession } from "next-auth";
 import { options } from "@/pages/api/auth/[...nextauth]";
@@ -22,7 +22,9 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
   }
 
   let uploadedFiles: Promise<UploadResult>[] = [];
-  let upload = {};
+  let upload: any = {
+    keywords: [],
+  };
 
   let resolveCuid = undefined;
   const cuid: Promise<string> = new Promise((res, _) => (resolveCuid = res));
@@ -54,6 +56,10 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
     }
     if (name == "start" || name == "end") {
       upload = { ...upload, [name]: new Date(value) };
+      return;
+    }
+    if (name == "keywords") {
+      upload.keywords.push(value);
       return;
     }
     upload = { ...upload, [name]: value };

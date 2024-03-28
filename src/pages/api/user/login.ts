@@ -1,5 +1,5 @@
+import { getPrisma } from "@/lib/prisma-client";
 import { SHA256 as sha256 } from "crypto-js";
-import prisma, { getPrisma } from "@/lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const hashPassword = (string: string) => {

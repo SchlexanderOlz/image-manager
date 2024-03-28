@@ -183,7 +183,7 @@ const Gallery = () => {
   return (
     <>
       <div className="text-center space-y-3">
-        <h1 className="text-5xl text-white font-bold">Gallery</h1>
+        <h1 className="text-5xl text-white font-bold select-none">Gallery</h1>
       </div>
       <div className="flex flex-col items-center">
         <div className="flex justify-center mt-5">
@@ -348,6 +348,8 @@ const Gallery = () => {
                     <h2
                       className="font-bold text-2xl mb-2 text-sky-200"
                       onClick={() => {
+                        if (imageData?.user.email != session?.user?.email)
+                          return;
                         setImageChange({
                           field: "name",
                           value: imageChange?.value
@@ -382,6 +384,8 @@ const Gallery = () => {
                         className="font-semibold text-blue-300"
                         onBlur={() => setImageChange(null)}
                         onClick={() => {
+                          if (imageData?.user.email != session?.user?.email)
+                            return;
                           setImageChange({
                             field: "created",
                             value: imageData?.created! as any,
@@ -422,6 +426,8 @@ const Gallery = () => {
                         className="font-semibold text-blue-300"
                         onBlur={() => setImageChange(null)}
                         onClick={() => {
+                          if (imageData?.user.email != session?.user?.email)
+                            return;
                           setImageChange({
                             field: "description",
                             value: imageData?.description! as any,
@@ -456,6 +462,8 @@ const Gallery = () => {
                         className="font-semibold text-blue-300"
                         onBlur={() => setImageChange(null)}
                         onClick={() => {
+                          if (imageData?.user.email != session?.user?.email)
+                            return;
                           setImageChange({
                             field: "groupname",
                             value: imageData?.group.name! as any,

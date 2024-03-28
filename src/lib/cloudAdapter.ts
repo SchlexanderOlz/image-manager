@@ -36,6 +36,7 @@ class CloudAdapter implements Adapter {
           metaParser.write(chunk);
           onChunk(chunk.length);
         })
+        .pipe(stream)
         .on("finish", async () => {
           const parsed = await parseResult(metaParser);
           const result: UploadResult = {
@@ -53,8 +54,7 @@ class CloudAdapter implements Adapter {
         })
         .on("end", () => {
           console.log("Stream ended (might be due to error)");
-        })
-        .pipe(stream);
+        });
     });
   };
 

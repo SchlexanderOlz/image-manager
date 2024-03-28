@@ -3,15 +3,7 @@
 import { Group, PrismaClient } from "@prisma/client";
 import LocalAdapter from "./localAdapter";
 import Adapter, { UploadResult } from "./adapter";
-
-let prisma: PrismaClient | null = null;
-
-export const getPrisma = () => {
-  if (prisma == null) {
-    prisma = new PrismaClient();
-  }
-  return prisma;
-};
+import { getPrisma } from "./prisma-client";
 
 export interface PictureGroupUpload {
   name: string;
@@ -152,6 +144,11 @@ export class DBInteraction {
       },
       data: update,
       include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
         group: true,
         keywords: true,
       },
@@ -258,5 +255,5 @@ export class DBInteraction {
   };
 }
 export const adapter = new LocalAdapter();
-export const db = new DBInteraction(adapter);
-export default prisma;
+const db = new DBInteraction(adapter);
+export default db;

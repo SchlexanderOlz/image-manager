@@ -1,4 +1,4 @@
-import { ImageFilterQuery, db } from "@/lib/prisma";
+import db, { ImageFilterQuery } from "@/lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { options } from "../../auth/[...nextauth]";

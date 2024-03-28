@@ -7,7 +7,7 @@ const Home = () => {
   const { component } = useContext(ComponentContext)!;
   return (
     <SessionProvider>
-      <div>{component}</div>);
+      <div>{component}</div>
     </SessionProvider>
   );
 };
