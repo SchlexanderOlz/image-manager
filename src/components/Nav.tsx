@@ -43,11 +43,16 @@ export default function Nav() {
               <a onClick={() => setComponent(<Gallery />)}>Gallery</a>
             </li>
             <li>
-              <a onClick={() => signOut()}>Logout</a>
+              <a onClick={() => signOut({ callbackUrl: "/login" })}>Logout</a>
             </li>
           </ul>
         </div>
-        <a onClick={() => setComponent(<Home />)} className="btn btn-ghost text-xl">Image-Manager</a>
+        <a
+          onClick={() => setComponent(<Home />)}
+          className="btn btn-ghost text-xl"
+        >
+          Image-Manager
+        </a>
       </div>
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1">
@@ -60,7 +65,7 @@ export default function Nav() {
             <a onClick={() => setComponent(<Gallery />)}>Gallery</a>
           </li>
           <li>
-            <a onClick={() => signOut()}>Logout</a>
+            <a onClick={() => signOut({ callbackUrl: "/login" })}>Logout</a>
           </li>
         </ul>
       </div>
