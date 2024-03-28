@@ -256,7 +256,7 @@ const Gallery = () => {
               checked={filter?.user}
               type="checkbox"
               name="user"
-              className="checkbox"
+              className="checkbox checkbox-primary"
               onChange={() =>
                 setFilterValue({
                   user: !filter?.user,
@@ -319,7 +319,7 @@ const Gallery = () => {
                                   photos.length,
                               );
                             }}
-                            className="btn btn-circle btn-ghost sm:text-2xl md:text-md transform transition-transform duration-200 hover:scale-110"
+                            className="btn btn-circle btn-ghost text-2xl transform transition-transform duration-200 hover:scale-110"
                           >
                             ❮
                           </a>
@@ -328,7 +328,7 @@ const Gallery = () => {
                               setTransitionDirection("right");
                               slideTo((focusedIndex + 1) % photos.length);
                             }}
-                            className="btn btn-circle btn-ghost sm:text-2xl md:text-md transform transition-transform duration-200 hover:scale-110"
+                            className="btn btn-circle btn-ghost text-2xl transform transition-transform duration-200 hover:scale-110"
                           >
                             ❯
                           </a>
