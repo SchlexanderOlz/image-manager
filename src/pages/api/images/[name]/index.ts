@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { db } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { options } from "../../auth/[...nextauth]";
 
 export const config = {
   api: {
@@ -28,8 +30,9 @@ export async function PATCH(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export async function DELETE(req: NextApiRequest, res: NextApiResponse) {
+  const session = (await getServerSession(req, res, options)) as any;
   const name = req.query.name! as string;
-  await db.deleteImageByFileName(name);
+  await db.deleteImageByFileName(name, session.user.email);
 
   res.status(204).end();
 }

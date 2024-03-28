@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { PictureGroupUpload, adapter, db } from "@/lib/prisma";
-import { getUploadFunction, registerUpload } from "./progress/[id]";
+import { getUploadFunction } from "./progress/[id]";
 import { getServerSession } from "next-auth";
 import { options } from "@/pages/api/auth/[...nextauth]";
 import busboy from "busboy";
@@ -15,7 +15,7 @@ export const config = {
 export default async function POST(req: NextApiRequest, res: NextApiResponse) {
   const session = (await getServerSession(req, res, options)) as any;
   const email = session!.user?.email;
-  if (!session || !email || !session.user.id) {
+  if (!session || !email) {
     res.status(401);
     res.end();
     return;
@@ -29,16 +29,16 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
   const bb = busboy({ headers: req.headers });
   let totalSize: number = Number.parseInt(req.headers["content-length"]!);
   let uploadedSize: number = 0;
-  bb.on("file", async (name, stream, info) => {
+  bb.on("file", async (_, stream, info) => {
     let uploadCallback = getUploadFunction(await cuid, email);
     let wrapper = async (progress: number) => {
       uploadedSize += progress;
       (await uploadCallback)(uploadedSize / totalSize);
     };
-    const { mimeType } = info;
+    const { mimeType, filename } = info;
     const uploadData: ImageUpload = {
       data: stream,
-      name,
+      name: filename,
       mimeType,
     };
     uploadedFiles.push(adapter.uploadFile(uploadData, wrapper));
@@ -59,14 +59,10 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
     upload = { ...upload, [name]: value };
   });
   bb.on("finish", async () => {
-    console.log("Finish");
     const images = await Promise.all(uploadedFiles);
-    upload = { ...upload, images: images };
+    upload = { ...upload, images: images, email: email };
 
-    if ((upload as any).user == "true") upload = { ...upload, email: email };
-    console.log(upload);
     await db.uploadImages(upload as PictureGroupUpload);
-    console.log("All images uploaded");
     res.end();
   });
   await req.pipe(bb);

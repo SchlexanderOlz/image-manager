@@ -1,10 +1,17 @@
 "use server";
 
-import { Group, PrismaClient, Image, User } from "@prisma/client";
+import { Group, PrismaClient } from "@prisma/client";
 import LocalAdapter from "./localAdapter";
 import Adapter, { UploadResult } from "./adapter";
 
-const prisma = new PrismaClient();
+let prisma: PrismaClient | null = null;
+
+export const getPrisma = () => {
+  if (prisma == null) {
+    prisma = new PrismaClient();
+  }
+  return prisma;
+};
 
 export interface PictureGroupUpload {
   name: string;
@@ -54,7 +61,7 @@ export class DBInteraction {
 
     if (filter?.begin || filter?.end || filter?.email) {
       andConditions.push({
-        OR: [
+        AND: [
           filter.email
             ? {
                 user: {
@@ -62,18 +69,22 @@ export class DBInteraction {
                 },
               }
             : {},
-          filter.begin
-            ? { created: { gte: filter?.begin, lte: filter?.end } }
-            : {},
+          {
+            OR: [
+              filter.begin
+                ? { created: { gte: filter?.begin, lte: filter?.end } }
+                : {},
 
-          filter.begin
-            ? {
-                group: {
-                  start: { gte: filter?.begin },
-                  end: { lte: filter?.end },
-                },
-              }
-            : {},
+              filter.begin
+                ? {
+                    group: {
+                      start: { gte: filter?.begin },
+                      end: { lte: filter?.end },
+                    },
+                  }
+                : {},
+            ],
+          },
         ],
       });
     }
@@ -89,7 +100,7 @@ export class DBInteraction {
   };
 
   getImages = async (filter?: ImageFilterQuery) => {
-    return await prisma.image.findMany({
+    return await getPrisma().image.findMany({
       where: this.makeFilter(filter) as any,
       orderBy: {
         created: "desc",
@@ -100,7 +111,7 @@ export class DBInteraction {
   getImageUrls = async (
     filter?: ImageFilterQuery,
   ): Promise<{ gcStorageName: string; height: number; width: number }[]> => {
-    return await prisma.image.findMany({
+    return await getPrisma().image.findMany({
       select: { gcStorageName: true, height: true, width: true },
       where: this.makeFilter(filter) as any,
       orderBy: {
@@ -110,11 +121,16 @@ export class DBInteraction {
   };
 
   getImageData = async (name: string) => {
-    return await prisma.image.findUnique({
+    return await getPrisma().image.findUnique({
       where: {
         gcStorageName: name,
       },
       include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
         group: true,
         keywords: true,
       },
@@ -122,7 +138,7 @@ export class DBInteraction {
   };
 
   getImageByFileName = async (name: string) => {
-    return await prisma.image.findUniqueOrThrow({
+    return await getPrisma().image.findUniqueOrThrow({
       where: {
         gcStorageName: name,
       },
@@ -130,7 +146,7 @@ export class DBInteraction {
   };
 
   updateImageByFileName = async (name: string, update: Object) => {
-    return await prisma.image.update({
+    return await getPrisma().image.update({
       where: {
         gcStorageName: name,
       },
@@ -143,13 +159,13 @@ export class DBInteraction {
   };
 
   switchGroup = async (name: string, groupname: string) => {
-    let group = await prisma.group.findUnique({
+    let group = await getPrisma().group.findUnique({
       where: {
         name: groupname,
       },
     });
     if (group == null) {
-      group = await prisma.group.create({
+      group = await getPrisma().group.create({
         data: {
           name: groupname,
           start: new Date(Date.now()),
@@ -157,7 +173,7 @@ export class DBInteraction {
         },
       });
     }
-    await prisma.image.update({
+    await getPrisma().image.update({
       where: {
         gcStorageName: name,
       },
@@ -167,10 +183,13 @@ export class DBInteraction {
     });
   };
 
-  deleteImageByFileName = async (name: string) => {
-    await prisma.image.delete({
+  deleteImageByFileName = async (name: string, email: string) => {
+    await getPrisma().image.delete({
       where: {
         gcStorageName: name,
+        user: {
+          email,
+        },
       },
     });
     await this.adapter.deleteFile(name);
@@ -185,6 +204,7 @@ export class DBInteraction {
       location: upload.location,
     };
 
+    let prisma = getPrisma();
     let group: Group;
 
     let user_id = (

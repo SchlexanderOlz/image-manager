@@ -4,6 +4,7 @@ import PhotoAlbum, { Photo } from "react-photo-album";
 import GalleryImage from "./GalleryImage";
 import * as prisma from "@prisma/client";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const Gallery = () => {
   interface ImageDataResponse extends prisma.Image {
@@ -20,7 +21,12 @@ const Gallery = () => {
       keyWord: string;
       image_id: number;
     }[];
+    user: {
+      email: string;
+    };
   }
+  const { data: session, status } = useSession();
+
   const router = useRouter();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
@@ -247,16 +253,15 @@ const Gallery = () => {
           <label className="label cursor-pointer">
             <span className="label-text mr-5">My Pictures</span>
             <input
-              checked={filter?.user ? true : false}
+              checked={filter?.user}
               type="checkbox"
               name="user"
               className="checkbox"
-              onChange={(event) => {
-                console.log(event.target.value);
+              onChange={() =>
                 setFilterValue({
-                  user: event.target.value ? true : false,
-                });
-              }}
+                  user: !filter?.user,
+                })
+              }
             />
           </label>
         </div>
@@ -518,6 +523,7 @@ const Gallery = () => {
                 </div>
                 <button
                   className="btn bg-red-600"
+                  disabled={imageData?.user.email != session?.user?.email}
                   onClick={() => deleteImage(imageData?.gcStorageName!)}
                 >
                   Delete
