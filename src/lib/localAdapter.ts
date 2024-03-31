@@ -30,7 +30,7 @@ class LocalAdapter implements Adapter {
         .pipe(stream)
         .on("finish", async () => {
           console.log("Finished upload");
-          metaParser.end();
+          metaParser = metaParser.end();
           const parsed = await parseResult(metaParser);
           const result: UploadResult = {
             name: file.name,
