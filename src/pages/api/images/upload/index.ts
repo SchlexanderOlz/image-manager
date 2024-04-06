@@ -63,6 +63,7 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
       return;
     }
     upload = { ...upload, [name]: value };
+    console.log(upload);
   });
   bb.on("finish", async () => {
     const images = await Promise.all(uploadedFiles);

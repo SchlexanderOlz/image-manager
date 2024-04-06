@@ -227,7 +227,7 @@ export class DBInteraction {
     }
 
     uploads.concat(
-      upload.images.forEach(
+      upload.images.map(
         async (image) =>
           await prisma.image.create({
             data: {

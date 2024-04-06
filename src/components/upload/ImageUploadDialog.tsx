@@ -52,9 +52,7 @@ export default function ImageUploadDialog() {
     const value = target.type === "checkbox" ? target.checked : target.value;
     const name = target.name;
 
-    setFormData({
-      [name]: value,
-    } as any);
+    setFormData({ ...formData, [name]: value } as any);
   };
 
   const deleteFile = useCallback(
@@ -172,7 +170,7 @@ export default function ImageUploadDialog() {
             />
             <input
               type="date"
-              name="beginTime"
+              name="startTime"
               placeholder="Timestart"
               className="input input-secondary input-bordered w-full max-w-xs h-12"
               value={formData.startTime}
