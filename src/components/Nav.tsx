@@ -6,9 +6,19 @@ import ImageUploadDialog from "./upload/ImageUploadDialog";
 import Home from "./Home";
 import Gallery from "./gallery/Gallery";
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function Nav() {
   const { setComponent } = useContext(ComponentContext)!;
+  const router = useRouter();
+
+  const logout = async () => {
+    let res = await signOut({ redirect: false });
+
+    if (res) {
+      router.push("/login");
+    }
+  };
 
   return (
     <div className="navbar bg-base-100">
@@ -43,7 +53,7 @@ export default function Nav() {
               <a onClick={() => setComponent(<Gallery />)}>Gallery</a>
             </li>
             <li>
-              <a onClick={() => signOut({ callbackUrl: "/login" })}>Logout</a>
+              <a onClick={() => logout()}>Logout</a>
             </li>
           </ul>
         </div>
@@ -65,7 +75,7 @@ export default function Nav() {
             <a onClick={() => setComponent(<Gallery />)}>Gallery</a>
           </li>
           <li>
-            <a onClick={() => signOut({ callbackUrl: "/login" })}>Logout</a>
+            <a onClick={() => logout()}>Logout</a>
           </li>
         </ul>
       </div>

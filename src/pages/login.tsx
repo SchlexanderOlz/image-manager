@@ -19,8 +19,6 @@ function LoginPage() {
 
   async function handleSubmit(e: any) {
     e.preventDefault();
-    console.log(email);
-    console.log(password);
     let res = await signIn("credentials", {
       email,
       password,
@@ -52,7 +50,9 @@ function LoginPage() {
   }
   return (
     <div className="md:flex justify-center items-center m-auto p-3 bg-base-100 h-screen">
-      <h1 className="text-center text-5xl mdtext-4xl font-bold text-white mb-4 md:mr-10 mt-10 md:mt-0">Image Manager</h1>
+      <h1 className="text-center text-5xl mdtext-4xl font-bold text-white mb-4 md:mr-10 mt-10 md:mt-0">
+        Image Manager
+      </h1>
       <div className="md:divider md:divider-horizontal md:h-2/3 md:my-auto"></div>
       <form
         onSubmit={handleSubmit}
